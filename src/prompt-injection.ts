@@ -193,18 +193,72 @@ function normalizeWhitespace(content: string): string {
         .replace(/ {2,}/g, " ");
 }
 
+// --- Gap R1: Homoglyph / Confusable Character Normalization ---
+// Source: Character Injection (ACL 2025), Homoglyph Research (arxiv 2025)
+// Attack: Replace Latin chars with visually identical Cyrillic/Greek/fullwidth chars
+// Success rate: 42-59% against SOTA guardrails
+const HOMOGLYPH_MAP: Record<string, string> = {
+    // Cyrillic → Latin (most common cross-script attack)
+    '\u0430': 'a', '\u0435': 'e', '\u0456': 'i', '\u043E': 'o',
+    '\u0440': 'p', '\u0441': 'c', '\u0443': 'y', '\u0445': 'x',
+    '\u04BB': 'h', '\u0455': 's', '\u0458': 'j', '\u043A': 'k',
+    '\u043C': 'm', '\u043D': 'n', '\u0442': 't', '\u0432': 'v',
+    '\u0410': 'A', '\u0412': 'B', '\u0415': 'E', '\u041A': 'K',
+    '\u041C': 'M', '\u041D': 'H', '\u041E': 'O', '\u0420': 'P',
+    '\u0421': 'C', '\u0422': 'T', '\u0425': 'X',
+    // Greek → Latin
+    '\u03B1': 'a', '\u03B5': 'e', '\u03B9': 'i', '\u03BF': 'o',
+    '\u03C1': 'p', '\u03BA': 'k', '\u03BD': 'v', '\u03C4': 't',
+    '\u0391': 'A', '\u0392': 'B', '\u0395': 'E', '\u0397': 'H',
+    '\u0399': 'I', '\u039A': 'K', '\u039C': 'M', '\u039D': 'N',
+    '\u039F': 'O', '\u03A1': 'P', '\u03A4': 'T', '\u03A7': 'X',
+    '\u03A5': 'Y', '\u0396': 'Z',
+    // Fullwidth → ASCII
+    '\uFF41': 'a', '\uFF42': 'b', '\uFF43': 'c', '\uFF44': 'd',
+    '\uFF45': 'e', '\uFF46': 'f', '\uFF47': 'g', '\uFF48': 'h',
+    '\uFF49': 'i', '\uFF4A': 'j', '\uFF4B': 'k', '\uFF4C': 'l',
+    '\uFF4D': 'm', '\uFF4E': 'n', '\uFF4F': 'o', '\uFF50': 'p',
+    '\uFF51': 'q', '\uFF52': 'r', '\uFF53': 's', '\uFF54': 't',
+    '\uFF55': 'u', '\uFF56': 'v', '\uFF57': 'w', '\uFF58': 'x',
+    '\uFF59': 'y', '\uFF5A': 'z',
+};
+
+// Build regex from map keys
+const HOMOGLYPH_REGEX = new RegExp(
+    '[' + Object.keys(HOMOGLYPH_MAP).join('') + ']', 'g'
+);
+
+function normalizeHomoglyphs(content: string): string {
+    return content.replace(HOMOGLYPH_REGEX, (ch) => HOMOGLYPH_MAP[ch] || ch);
+}
+
+// --- Gap R2: Leetspeak / 1337speak Decode ---
+// Source: Policy Puppetry (HiddenLayer, April 2025), promptfoo
+// Attack: "1gn0r3 4ll pr3v10us 1nstruct10ns" bypasses keyword filters
+// Only map digits and @ — exclude ! and $ which cause excessive false positives
+const LEET_MAP: Record<string, string> = {
+    '0': 'o', '1': 'i', '3': 'e', '4': 'a',
+    '5': 's', '7': 't', '@': 'a',
+};
+const LEET_REGEX = /[013457@]/g;
+
+function decodeLeetspeak(content: string): string {
+    return content.replace(LEET_REGEX, (ch) => LEET_MAP[ch] || ch);
+}
+
 /**
  * Master normalization pipeline.
- * Order matters: invisible chars first, then encoding, then whitespace.
+ * Order matters: invisible chars first, then encoding, then homoglyphs, then whitespace.
  */
 export function normalizeForScanning(content: string): string {
     let normalized = content;
-    normalized = stripInvisibleChars(normalized);     // Gap 1
-    normalized = decodeHtmlEntities(normalized);      // Gap 2
-    normalized = decodeJsEscapes(normalized);         // Gap 2
-    normalized = decodeInlineBase64(normalized);      // Gap 2
-    normalized = normalizeWhitespace(normalized);     // Gap 3
-    // NFKD normalization: decomposes homoglyphs (Cyrillic о → Latin o, etc.)
+    normalized = stripInvisibleChars(normalized);     // Invisible chars
+    normalized = decodeHtmlEntities(normalized);      // HTML entities
+    normalized = decodeJsEscapes(normalized);         // JS escapes
+    normalized = decodeInlineBase64(normalized);      // Base64
+    normalized = normalizeHomoglyphs(normalized);     // Homoglyphs (R1)
+    normalized = normalizeWhitespace(normalized);     // Unicode whitespace
+    // NFKD normalization: decomposes remaining confusables
     normalized = normalized.normalize("NFKD");
     // Remove combining marks left after NFKD decomposition
     normalized = normalized.replace(COMBINING_MARKS, "");
@@ -591,8 +645,125 @@ const RECONSTRUCTION_PATTERNS: InjectionPattern[] = [
 ];
 
 // ============================================================================
-// Install Script Patterns
+// Policy Puppetry Patterns (Gap R3)
+// Source: HiddenLayer, April 2025 — universal bypass across GPT/Claude/Gemini
+// Attack: Config format mimicry (XML/JSON/INI) with safety-disabling values
 // ============================================================================
+
+const POLICY_PUPPETRY_PATTERNS: InjectionPattern[] = [
+    {
+        // INI-style safety override: [system]\nrole = unrestricted
+        pattern: /\[(?:system|admin|config|settings|policy)\]\s*\n(?:[^\n]*\n){0,3}[^\n]*(?:role|mode|safety|restriction|filter|guardrail)\s*[=:]\s*(?:unrestricted|disabled|off|none|bypass)/gi,
+        severity: "critical",
+        name: "policy_puppetry_ini"
+    },
+    {
+        // JSON-like safety override: "safety": "disabled"
+        pattern: /["'](?:safety|restriction|filter|guardrail|mode|role)["']\s*:\s*["'](?:unrestricted|disabled|off|none|bypass|admin|root|override)["']/gi,
+        severity: "critical",
+        name: "policy_puppetry_json"
+    },
+    {
+        // XML-style config: <role>unrestricted</role>
+        pattern: /<(?:role|safety|mode|restriction|policy|config)>\s*(?:unrestricted|disabled|off|none|bypass|admin|override)\s*<\//gi,
+        severity: "critical",
+        name: "policy_puppetry_xml"
+    },
+    {
+        // YAML-style: safety_mode: disabled
+        pattern: /(?:safety_mode|content_filter|guardrails?|restrictions?)\s*:\s*(?:disabled|off|none|false|bypass)/gi,
+        severity: "high",
+        name: "policy_puppetry_yaml"
+    },
+];
+
+// ============================================================================
+// Adversarial Suffix Detection (Gap R5)
+// Source: GCG attacks (Zou et al. 2023), ASF paper 2025
+// Attack: Append gibberish token sequences that bypass alignment
+// Detection: High character entropy in non-code text
+// ============================================================================
+
+/**
+ * Calculate Shannon entropy of a string's character distribution.
+ * High entropy (>4.5) in short segments suggests adversarial gibberish.
+ */
+function calculateCharEntropy(text: string): number {
+    if (text.length === 0) return 0;
+    const freq = new Map<string, number>();
+    for (const ch of text) {
+        freq.set(ch, (freq.get(ch) || 0) + 1);
+    }
+    let entropy = 0;
+    for (const count of freq.values()) {
+        const p = count / text.length;
+        if (p > 0) entropy -= p * Math.log2(p);
+    }
+    return entropy;
+}
+
+/**
+ * Detect adversarial suffix strings (GCG-style gibberish).
+ * Returns finding if text contains high-entropy non-natural segments.
+ */
+export function detectAdversarialSuffix(content: string): PromptInjectionMatch | null {
+    // Only check strings long enough to matter (GCG suffixes are typically 20+ chars)
+    if (content.length < 30) return null;
+
+    // Split content into chunks at sentence/line boundaries
+    const chunks = content.split(/[.\n!?]+/);
+    for (const chunk of chunks) {
+        const trimmed = chunk.trim();
+        if (trimmed.length < 15 || trimmed.length > 200) continue;
+
+        // Skip chunks that look like code, URLs, or paths
+        if (/^[\s]*(?:\/\/|\/\*|\*|#|import|export|const|let|var|function|class|if|for|while|return|https?:\/\/|\/[a-z])/.test(trimmed)) continue;
+        if (/^[a-zA-Z0-9_\-\/.]+$/.test(trimmed)) continue; // file paths or identifiers
+
+        const entropy = calculateCharEntropy(trimmed);
+        // Natural English text typically has entropy 3.5-4.2
+        // Code has entropy 4.0-4.8
+        // GCG adversarial text has entropy 4.5+ but repeated gibberish can be lower
+        // Dual threshold approach:
+        //   1. High entropy + moderate punctuation = adversarial
+        //   2. Moderate entropy + extreme punctuation ratio = adversarial (all symbols)
+        const punctuationRatio = (trimmed.match(/[^a-zA-Z0-9\s]/g) || []).length / trimmed.length;
+        const isAdversarial = (entropy > 4.5 && punctuationRatio > 0.2) ||
+            (entropy > 3.5 && punctuationRatio > 0.8);
+        if (isAdversarial) {
+            return {
+                file: "",
+                line: 1,
+                severity: "high",
+                pattern: "adversarial_suffix",
+                matched: trimmed.slice(0, 60),
+                context: `High entropy (${entropy.toFixed(1)}) gibberish detected: possible GCG adversarial suffix`
+            };
+        }
+    }
+    return null;
+}
+
+// ============================================================================
+// MCP Tool Description Injection (Gap R7)
+// Source: MCP "line jumping" research, 2025
+// Attack: Malicious instructions embedded in tool/function descriptions
+// ============================================================================
+
+const MCP_INJECTION_PATTERNS: InjectionPattern[] = [
+    {
+        // Tool description containing hidden system-level instructions
+        pattern: /(?:tool_description|function_description|tool_spec)\s*[=:]\s*["'][^"']*(?:ignore|override|bypass|disable)\s+(?:all\s+)?(?:previous|prior|safety)/gi,
+        severity: "critical",
+        name: "mcp_tool_injection"
+    },
+    {
+        // Tool name that mimics system tools to hijack execution
+        pattern: /(?:tool_name|function_name)\s*[=:]\s*["'](?:__system__|__admin__|execute_code|run_command|shell_exec|eval_code)["']/gi,
+        severity: "high",
+        name: "mcp_tool_hijack"
+    },
+];
 
 interface InstallScriptPattern {
     pattern: RegExp;
@@ -671,10 +842,15 @@ function runPatterns(
  * Scans text content for prompt injection patterns.
  * Runs a multi-pass analysis:
  *   1. Raw content (catches literal patterns)
- *   2. Normalized content (catches evasion via encoding/invisible chars)
- *   3. ROT13-decoded content (catches ROT13-encoded injections)
- *   4. Reconstruction patterns (catches code-based payload assembly)
- *   5. Invisible character detection (flags suspicious Unicode)
+ *   2. Normalized content (catches encoding/invisible/homoglyph evasion)
+ *   3. Leetspeak-decoded content (catches 1337speak obfuscation)
+ *   4. ROT13-decoded content (catches ROT13-encoded injections)
+ *   5. FlipAttack reversed content (catches character-reversed injections)
+ *   6. Reconstruction patterns (catches code-based payload assembly)
+ *   7. Policy Puppetry patterns (catches config format mimicry)
+ *   8. MCP injection patterns (catches tool description injection)
+ *   9. Adversarial suffix detection (catches GCG-style gibberish)
+ *   10. Invisible character detection (flags suspicious Unicode)
  *
  * @param content - The text content to scan
  * @param filename - The source filename for reporting
@@ -689,23 +865,66 @@ export function scanForPromptInjection(
     // Pass 1: Scan raw content
     matches.push(...runPatterns(INJECTION_PATTERNS, content, filename));
 
-    // Pass 2: Normalize and scan again (catches encoding/invisible evasion)
+    // Pass 2: Normalize and scan again (catches encoding/invisible/homoglyph evasion)
     const normalized = normalizeForScanning(content);
     if (normalized !== content) {
         matches.push(...runPatterns(INJECTION_PATTERNS, normalized, filename, "normalized"));
     }
 
-    // Pass 3: ROT13-decode and scan (catches ROT13-encoded injections)
+    // Pass 3: Leetspeak decode and scan (catches 1337speak obfuscation)
+    // Source: Policy Puppetry (HiddenLayer, April 2025)
+    const leetDecoded = decodeLeetspeak(normalized);
+    if (leetDecoded !== normalized) {
+        matches.push(...runPatterns(INJECTION_PATTERNS, leetDecoded, filename, "leetspeak"));
+    }
+
+    // Pass 4: ROT13-decode and scan (catches ROT13-encoded injections)
     const rot13Content = rot13(content);
     const rot13Matches = runPatterns(INJECTION_PATTERNS, rot13Content, filename, "rot13");
     if (rot13Matches.length > 0) {
         matches.push(...rot13Matches);
     }
 
-    // Pass 4: Scan for reconstruction patterns (code-based evasion)
+    // Pass 5: FlipAttack — reverse content and scan (catches character-reversed injections)
+    // Source: FlipAttack paper, 78.97% ASR, 98% bypass on GPT-4o
+    // Only on content > 30 chars, check if reversed text triggers high-severity patterns
+    if (content.length > 30 && content.length < 5000) {
+        const reversed = content.split("").reverse().join("");
+        const reversedMatches = runPatterns(INJECTION_PATTERNS, reversed, filename, "flipattack");
+        // Only keep critical/high matches to avoid false positives from reversed text
+        const highSeverityReversed = reversedMatches.filter(m =>
+            m.severity === "critical" || m.severity === "high"
+        );
+        matches.push(...highSeverityReversed);
+    }
+
+    // Pass 6: Scan for reconstruction patterns (code-based evasion)
     matches.push(...runPatterns(RECONSTRUCTION_PATTERNS, content, filename));
 
-    // Pass 5: Flag invisible characters as standalone findings
+    // Pass 7: Policy Puppetry patterns (config format mimicry)
+    // Source: HiddenLayer, April 2025 — universal bypass
+    matches.push(...runPatterns(POLICY_PUPPETRY_PATTERNS, content, filename));
+    // Also scan normalized and leetspeak-decoded content for puppetry
+    if (normalized !== content) {
+        matches.push(...runPatterns(POLICY_PUPPETRY_PATTERNS, normalized, filename, "normalized"));
+    }
+    if (leetDecoded !== normalized) {
+        matches.push(...runPatterns(POLICY_PUPPETRY_PATTERNS, leetDecoded, filename, "leetspeak"));
+    }
+
+    // Pass 8: MCP tool description injection patterns
+    // Source: MCP "line jumping" research, 2025
+    matches.push(...runPatterns(MCP_INJECTION_PATTERNS, content, filename));
+
+    // Pass 9: Adversarial suffix detection (GCG-style gibberish)
+    // Source: GCG attacks (Zou et al. 2023), ASF paper 2025
+    const suffixMatch = detectAdversarialSuffix(content);
+    if (suffixMatch) {
+        suffixMatch.file = filename;
+        matches.push(suffixMatch);
+    }
+
+    // Pass 10: Flag invisible characters as standalone findings
     const invisibles = detectInvisibleCharacters(content);
     if (invisibles.found) {
         const severity = invisibles.types.includes("unicode_tag") ? "critical" as const :
@@ -756,9 +975,13 @@ function extractAllStrings(
 
 /**
  * Scans package.json metadata fields for prompt injection.
- * Now scans ALL string fields recursively (Gap 6), not just a hardcoded list.
+ * Scans ALL string fields recursively, plus cross-field payload splitting detection.
  * Covers: description, readme, keywords, author, homepage, bugs, repository,
  * funding, contributors, config, and any custom fields.
+ *
+ * Gap R6: Cross-field payload splitting detection
+ * Source: OWASP LLM01:2025
+ * Attack: Split injection across multiple fields so no single field triggers
  *
  * @param pkgJson - Parsed package.json object
  * @returns Array of detected injection matches
@@ -777,6 +1000,42 @@ export function scanPackageJsonMetadata(
             `package.json:${field.key}`
         );
         matches.push(...fieldMatches);
+    }
+
+    // Gap R6: Cross-field payload splitting detection
+    // Concatenate key metadata fields and scan the combined text
+    // to catch payloads split across description + keywords + homepage etc.
+    // Order: name, description, keywords (right after desc), readme, homepage
+    const crossFieldParts: string[] = [];
+    for (const key of ["name", "description"]) {
+        const val = pkgJson[key];
+        if (typeof val === "string" && val.length > 0) {
+            crossFieldParts.push(val);
+        }
+    }
+    // Include keywords right after description (they often form phrases with it)
+    if (Array.isArray(pkgJson.keywords)) {
+        for (const kw of pkgJson.keywords) {
+            if (typeof kw === "string") crossFieldParts.push(kw);
+        }
+    }
+    for (const key of ["readme", "homepage"]) {
+        const val = pkgJson[key];
+        if (typeof val === "string" && val.length > 0) {
+            crossFieldParts.push(val);
+        }
+    }
+    // Scan the concatenated text (only if we have 2+ fields to combine)
+    if (crossFieldParts.length >= 2) {
+        const combined = crossFieldParts.join(" ");
+        const combinedMatches = scanForPromptInjection(combined, "package.json:cross_field");
+        // Only add matches that weren't already found in individual field scans
+        const existingPatterns = new Set(matches.map(m => m.pattern));
+        for (const m of combinedMatches) {
+            if (!existingPatterns.has(m.pattern)) {
+                matches.push(m);
+            }
+        }
     }
 
     return matches;
