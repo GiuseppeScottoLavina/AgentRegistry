@@ -12,7 +12,7 @@ import * as tar from 'tar';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Use /tmp to avoid macOS sandbox restrictions in project directory
-const TARBALL_DIR = '/tmp/tinynpm-security-fixtures';
+const TARBALL_DIR = '/tmp/agentregistry-security-fixtures';
 const TMP_DIR = join(__dirname, '.tmp-build');
 
 // Clean and create directories
@@ -22,7 +22,7 @@ mkdirSync(TARBALL_DIR, { recursive: true });
 mkdirSync(TMP_DIR, { recursive: true });
 
 async function createTarball(name, files) {
-    const tmpBase = `/tmp/tinynpm-fixtures-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const tmpBase = `/tmp/agentregistry-fixtures-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const pkgDir = join(tmpBase, name);
     const packageDir = join(pkgDir, 'package');
     mkdirSync(packageDir, { recursive: true });

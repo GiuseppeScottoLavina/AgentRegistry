@@ -18,10 +18,10 @@ node_modules/
 # Build artefacts
 dist/
 web/
-tinynpm
-tinynpm-cli
-tinynpm-release
-tinynpm-v1
+agentregistry
+agentregistry-cli
+agentregistry-release
+agentregistry-v1
 *.tgz
 graph.json
 lighthouse-report*.json
