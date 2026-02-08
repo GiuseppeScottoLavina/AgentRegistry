@@ -30,19 +30,29 @@ bun test
 ```
 agentregistry/
 ├── src/
-│   ├── server.ts      # Main server with all handlers
-│   ├── cli.ts         # CLI commands (start, stop, status, etc.)
-│   ├── daemon.ts      # Background process management
-│   ├── config.ts      # Configuration constants
-│   ├── database.ts    # SQLite database operations
-│   ├── security.ts    # Security scanner
-│   ├── logger.ts      # Logging utilities
+│   ├── server.ts          # Main server with all handlers
+│   ├── cli.ts             # CLI commands (start, stop, status, etc.)
+│   ├── daemon.ts          # Background process management
+│   ├── config.ts          # Configuration constants
+│   ├── database.ts        # SQLite database operations
+│   ├── security.ts        # Security scanner
+│   ├── logger.ts          # Logging utilities
+│   ├── services/          # Core services
+│   │   ├── broadcast.ts   # WebSocket broadcast
+│   │   └── cache.ts       # In-memory caching
+│   ├── upstream/          # Upstream registry proxy
+│   │   └── index.ts       # npmjs.org fetch & quarantine
+│   ├── utils/             # Utility modules
+│   │   ├── compression.ts # HTTP compression
+│   │   ├── helpers.ts     # ID, hash, path helpers
+│   │   ├── http.ts        # ETag generation
+│   │   └── validation.ts  # Input validation
 │   └── web/
-│       └── admin.html # Admin panel (single file)
-├── tests/             # Test files
-├── docs/              # Documentation website
-├── storage/           # Runtime data (gitignored)
-└── scripts/           # Installation scripts
+│       └── admin.html     # Admin panel (single file)
+├── tests/                 # 631 tests across 26 files
+├── docs/                  # Documentation website
+├── storage/               # Runtime data (gitignored)
+└── scripts/               # Installation scripts
 ```
 
 ## 🧪 Testing
@@ -66,10 +76,27 @@ bun test tests/allowlist.test.ts
 |------|----------|
 | `server.test.ts` | HTTP API endpoints |
 | `admin-panel.test.ts` | Admin panel structure |
-| `allowlist.test.ts` | IP allowlist WebSocket |
+| `security.test.ts` | Security scanner integration |
+| `security-unit.test.ts` | Security scanner unit tests |
+| `database.test.ts` | SQLite database operations |
+| `ip-allowlist.test.ts` | IP allowlist management |
+| `allowlist.test.ts` | Allowlist WebSocket API |
+| `package-allowlist.test.ts` | Package allowlist |
 | `websocket-ops.test.ts` | WebSocket operations |
+| `broadcast.test.ts` | WebSocket broadcast events |
+| `agent-first.test.ts` | Agent-first API |
+| `upstream.test.ts` | Upstream registry proxy |
+| `services.test.ts` | Cache & broadcast services |
+| `compression.test.ts` | HTTP compression |
+| `helpers.test.ts` | Helpers & HTTP utilities |
+| `validation.test.ts` | Input validation |
+| `prompt-injection.test.ts` | Prompt injection scanner |
+| `cve.test.ts` / `cve-mocked.test.ts` | CVE module |
+| `metrics.test.ts` | Metrics collection |
+| `health-endpoints.test.ts` | Health check endpoints |
+| `docs-site.test.ts` | Documentation site |
 | `logger.test.ts` | Logging module |
-| `security.test.ts` | Security scanner |
+| `daemon.test.ts` | Daemon management |
 | `cli.test.ts` | CLI commands |
 
 ## 💻 Development Workflow

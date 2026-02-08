@@ -193,7 +193,7 @@ interface ScanResult {
 
 ```bash
 bun test
-# 557 tests covering all endpoints, security, admin panel, and agent APIs
+# 631 tests covering all endpoints, security, admin panel, and agent APIs
 ```
 
 ---

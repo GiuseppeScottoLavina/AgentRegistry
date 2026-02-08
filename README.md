@@ -258,21 +258,23 @@ bun test
 | Database Module | 54 | ✅ |
 | IP Allowlist | 52 | ✅ |
 | Admin Panel | 48 | ✅ |
-| Security Module | 35 | ✅ |
+| CVE Module | 39 | ✅ |
+| Security Module | 52 | ✅ |
+| Helpers & HTTP | 29 | ✅ |
+| Validation | 28 | ✅ |
 | Documentation Site | 26 | ✅ |
 | Agent-First API | 25 | ✅ |
 | Metrics Module | 25 | ✅ |
-| CVE Module | 39 | ✅ |
+| Services (Cache & Broadcast) | 24 | ✅ |
 | Package Allowlist | 21 | ✅ |
-| WebSocket Broadcast | 10 | ✅ |
-| WebSocket Operations | 10 | ✅ |
-| Health Check | 10 | ✅ |
-| Daemon | 11 | ✅ |
-| Upstream Module | 9 | ✅ |
+| Upstream Module | 18 | ✅ |
+| Health Check | 16 | ✅ |
+| Daemon | 13 | ✅ |
+| Compression | 9 | ✅ |
 | Logger | 9 | ✅ |
-| Allowlist WebSocket | 8 | ✅ |
 | CLI | 6 | ✅ |
-| Unit Tests | 29 | ✅ |
+| Unit Tests | 4 | ✅ |
+| WebSocket Tests | 3 | ✅ |
 | **Total** | **631** | **100%** |
 
 ## Automatic Maintenance
