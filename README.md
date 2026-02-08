@@ -251,9 +251,11 @@ Packages are stored locally in:
 # First, start the server (required for tests)
 bun start
 
-# In another terminal, run all 752 tests (100% pass rate)
+# In another terminal, run all 727 tests
 bun test
 ```
+
+> ⚠️ Some tests (Admin Panel, Agent-First API, Documentation Site) require a running server to pass.
 
 ### Test Coverage
 
@@ -281,10 +283,7 @@ bun test
 | CLI | 6 | ✅ |
 | Unit Tests | 4 | ✅ |
 | WebSocket Tests | 3 | ✅ |
-| Dynamic Integration† | 25 | ✅ |
-| **Total** | **752** | **100%** |
-
-> †Dynamic tests generated at runtime (publish→verify roundtrips, WebSocket state checks)
+| **Total** | **727** | **✅** |
 
 ## Automatic Maintenance
 
@@ -354,7 +353,7 @@ The prompt injection scanner uses a **research-backed 10-pass analysis pipeline*
 
 | Pass | Technique | Catches |
 |------|-----------|--------|
-| 1 | Raw content scan | Literal injection patterns in 7 languages |
+| 1 | Raw content scan | Literal injection patterns in 5 languages |
 | 2 | Unicode normalization + homoglyphs | Cyrillic/Greek/fullwidth character substitution |
 | 3 | Leetspeak decode | `1gn0r3 4ll pr3v10us 1nstruct10ns` |
 | 4 | ROT13 decode | ROT13-encoded payloads |
@@ -371,7 +370,7 @@ The prompt injection scanner uses a **research-backed 10-pass analysis pipeline*
 
 | Attack Vector | Paper/Source | Detection Method |
 |---------------|--------------|------------------|
-| Homoglyph substitution | ACL 2025 (42-59% ASR) | NFKD + character map normalization |
+| Homoglyph substitution | ACL 2025 (42-59% ASR) | NFKD + 75 character mappings |
 | Leetspeak obfuscation | HiddenLayer, April 2025 | Digit→letter substitution |
 | Policy Puppetry | HiddenLayer, April 2025 | Config format pattern matching |
 | FlipAttack | ACL 2025 (98% GPT-4o bypass) | Reverse content scanning |
@@ -380,7 +379,7 @@ The prompt injection scanner uses a **research-backed 10-pass analysis pipeline*
 | MCP line jumping | MCP security research, 2025 | Tool description pattern matching |
 | Invisible Unicode | Unicode Consortium TR36 | Zero-width/tag character detection |
 
-**154 adversarial tests** · 97% line coverage · 100% function coverage
+**154 prompt injection tests** (30 SOTA adversarial) · 100% line coverage · 97% function coverage
 
 ### Research References
 
