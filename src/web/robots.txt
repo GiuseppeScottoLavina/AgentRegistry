@@ -1,0 +1,12 @@
+# AgentRegistry Local Registry - robots.txt
+# This is a local development/agent registry
+
+User-agent: *
+Allow: /
+
+# Block only internal endpoints
+Disallow: /-/admin/
+Disallow: /-/user/
+Disallow: /-/npm/
+
+# Sitemap (none for local registry)

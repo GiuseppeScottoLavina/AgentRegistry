@@ -1,0 +1,2784 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/assets/favicon.webp">
+    <meta name="description" content="AgentRegistry Admin Panel - Manage local packages, quarantine, and security settings.">
+    <title>AgentRegistry Admin</title>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap"
+        media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+    </noscript>
+    <link rel="preload" href="/assets/hero_premium.webp" as="image" type="image/webp"
+        imagesrcset="/assets/hero_premium.webp 1x, /assets/hero_premium_2x.webp 2x" fetchpriority="high">
+    <link rel="preload" href="/assets/logo_3d.webp" as="image" type="image/webp">
+    <style>
+        :root {
+            --bg-primary: #030305;
+            --bg-secondary: rgba(15, 15, 20, 0.7);
+            --bg-tertiary: rgba(25, 25, 35, 0.6);
+            --bg-card: rgba(20, 20, 30, 0.6);
+            --border: rgba(255, 255, 255, 0.06);
+            --border-glow: rgba(139, 92, 246, 0.4);
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --text-muted: #9ca3af;
+            --accent: #8b5cf6;
+            --accent-light: #a78bfa;
+            --accent-glow: rgba(139, 92, 246, 0.5);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.4);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.4);
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --gradient-2: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+            --gradient-text: linear-gradient(to right, #c4b5fd, #67e8f9);
+            --gradient-hero: linear-gradient(180deg, rgba(139, 92, 246, 0.15) 0%, rgba(0, 0, 0, 0) 100%);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.15)
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 25%), radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.08), transparent 25%)
+        }
+
+        h1,
+        h2,
+        h3,
+        .tab {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em
+        }
+
+        .icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0
+        }
+
+        .icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none
+        }
+
+        .icon-lg {
+            width: 24px;
+            height: 24px
+        }
+
+        .header {
+            background: rgba(3, 3, 5, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: var(--glass-border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4)
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+            letter-spacing: -0.03em
+        }
+
+        .header h1 span {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .header h1 img {
+            border-radius: 8px;
+            box-shadow: 0 0 15px var(--accent-glow);
+            transition: transform 0.3s ease
+        }
+
+        .header h1:hover img {
+            transform: scale(1.1) rotate(-5deg)
+        }
+
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: var(--glass-border);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger);
+            box-shadow: 0 0 10px var(--danger-glow);
+            transition: all 0.3s ease
+        }
+
+        .status-dot.connected {
+            background: var(--success);
+            box-shadow: 0 0 15px var(--success-glow)
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            border-radius: 16px;
+            overflow-x: auto;
+            scrollbar-width: thin
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+            flex-shrink: 0
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05)
+        }
+
+        .tab.active {
+            background: rgba(139, 92, 246, 0.15);
+            color: #d8b4fe;
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.1)
+        }
+
+        .tab .icon {
+            transition: transform 0.3s ease
+        }
+
+        .tab.active .icon {
+            transform: scale(1.1);
+            color: var(--accent)
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 18px;
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            background-image: url('/assets/card_bg.webp');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(139, 92, 246, 0.1), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none
+        }
+
+        .stat-card:hover::after {
+            opacity: 1
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            border-color: var(--border-glow)
+        }
+
+        .stat-card .label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.05em
+        }
+
+        .stat-card .sub {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem
+        }
+
+        .section {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            border-radius: 20px;
+            margin-bottom: 2.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2)
+        }
+
+        .section-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%)
+        }
+
+        .section-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #fff
+        }
+
+        .btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            letter-spacing: 0.02em
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px)
+        }
+
+        .btn-primary {
+            background: var(--gradient-2);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 15px var(--accent-glow);
+            position: relative;
+            overflow: hidden
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-20deg);
+            transition: 0.5s
+        }
+
+        .btn-primary:hover::before {
+            left: 150%
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 8px 25px var(--accent-glow);
+            transform: translateY(-2px)
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 4px 15px var(--danger-glow)
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0
+        }
+
+        th,
+        td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04)
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: 'Space Grotesk', sans-serif
+        }
+
+        tr:last-child td {
+            border-bottom: none
+        }
+
+        tr {
+            transition: all 0.2s ease;
+            position: relative
+        }
+
+        tr:hover td {
+            background: rgba(139, 92, 246, 0.08)
+        }
+
+        tr:hover td:first-child {
+            box-shadow: inset 3px 0 0 var(--accent)
+        }
+
+        .table-compact th,
+        .table-compact td {
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem
+        }
+
+        .table-compact th {
+            font-size: 0.7rem
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            font-family: 'Space Grotesk', sans-serif
+        }
+
+        .badge-safe {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.2)
+        }
+
+        .badge-blocked {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.2)
+        }
+
+        .empty-icon {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px)
+        }
+
+        #uptimetext {
+            font-family: 'Space Grotesk', monospace;
+            opacity: 0.8
+        }
+
+        .modal {
+            backdrop-filter: blur(5px)
+        }
+
+        .modal-content {
+            background: #0f0f13;
+            border: 1px solid var(--border-glow);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border-radius: 20px
+        }
+
+        .tab-content {
+            display: none
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .badge-info {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-light);
+            border: 1px solid rgba(139, 92, 246, 0.3)
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3)
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3)
+        }
+
+        .badge-pi-low {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.2)
+        }
+
+        .badge-pi-medium {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3)
+        }
+
+        .badge-pi-high {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.2)
+        }
+
+        .pi-findings-detail {
+            font-size: 0.8rem;
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .pi-findings-detail li {
+            margin-bottom: 0.4rem;
+        }
+
+        .pi-findings-detail code {
+            font-size: 0.75rem;
+            background: rgba(139, 92, 246, 0.1);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease
+        }
+
+        th.sortable:hover {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--text-primary)
+        }
+
+        th.sortable::after {
+            content: '⇅';
+            margin-left: 0.5rem;
+            opacity: 0.3;
+            font-size: 0.7rem
+        }
+
+        th.sortable.sort-asc::after {
+            content: '↑';
+            opacity: 1;
+            color: var(--accent)
+        }
+
+        th.sortable.sort-desc::after {
+            content: '↓';
+            opacity: 1;
+            color: var(--accent)
+        }
+
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-secondary)
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: none;
+            animation: slideIn 0.3s ease;
+            z-index: 1000
+        }
+
+        .toast.success {
+            border-color: var(--success)
+        }
+
+        .toast.error {
+            border-color: var(--danger)
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 1rem
+        }
+
+        .loading-overlay.active {
+            display: flex
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            backdrop-filter: blur(5px)
+        }
+
+        .modal.active {
+            display: flex
+        }
+
+        .modal-content {
+            background: #0f0f13;
+            border: 1px solid var(--border-glow);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            padding: 1.5rem;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem
+        }
+
+        #uptime {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+            background: rgba(139, 92, 246, 0.1)
+        }
+
+        .toggle-switch input[type="checkbox"] {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0
+        }
+
+        .toggle-switch input[type="checkbox"]::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
+        }
+
+        .toggle-switch input[type="checkbox"]:checked {
+            background: var(--accent);
+            border-color: var(--accent)
+        }
+
+        .toggle-switch input[type="checkbox"]:checked::before {
+            transform: translateX(20px)
+        }
+
+        @media (max-width:900px) {
+            .container {
+                padding: 1.5rem 1rem
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem
+            }
+
+            .stat-card {
+                padding: 1.25rem
+            }
+
+            .stat-value {
+                font-size: 1.75rem
+            }
+
+            .header {
+                padding: 0.75rem 1rem
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+                gap: 0.5rem
+            }
+
+            .header h1 img {
+                width: 32px;
+                height: 32px
+            }
+
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch
+            }
+
+            table {
+                min-width: 600px
+            }
+
+            th,
+            td {
+                padding: 0.6rem 0.75rem;
+                font-size: 0.85rem
+            }
+        }
+
+        @media (max-width:600px) {
+            .container {
+                padding: 1rem 0.75rem;
+                padding-bottom: calc(1rem+env(safe-area-inset-bottom))
+            }
+
+            .header {
+                padding: 0.5rem 0.75rem;
+                flex-wrap: wrap;
+                gap: 0.5rem
+            }
+
+            .header h1 {
+                font-size: 1.1rem;
+                width: 100%;
+                justify-content: center
+            }
+
+            .header .status {
+                width: 100%;
+                justify-content: center;
+                gap: 0.75rem
+            }
+
+            .status-indicator {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.7rem
+            }
+
+            .tabs {
+                gap: 0.25rem;
+                padding: 0.375rem;
+                margin-bottom: 1rem;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch
+            }
+
+            .tab {
+                padding: 0.6rem 1rem;
+                font-size: 0.8rem;
+                min-height: 44px;
+                scroll-snap-align: start
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem
+            }
+
+            .stat-card {
+                padding: 1rem
+            }
+
+            .stat-value {
+                font-size: 1.5rem
+            }
+
+            .stat-label {
+                font-size: 0.7rem
+            }
+
+            .section-card {
+                padding: 1rem;
+                border-radius: 12px
+            }
+
+            .section-title {
+                font-size: 0.9rem
+            }
+
+            table {
+                min-width: 500px
+            }
+
+            th,
+            td {
+                padding: 0.5rem;
+                font-size: 0.75rem
+            }
+
+            th {
+                font-size: 0.65rem
+            }
+
+            #audit-content,
+            #scans-content,
+            #requests-content,
+            #packages-content,
+            #quarantine-content {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                max-width: 100%
+            }
+
+            #audit-content table,
+            #scans-content table,
+            #requests-content table,
+            #packages-content table,
+            #quarantine-content table {
+                min-width: 500px;
+                width: max-content
+            }
+
+            .btn,
+            .btn-small {
+                min-height: 44px;
+                min-width: 44px;
+                padding: 0.5rem 0.75rem
+            }
+
+            input,
+            select,
+            textarea {
+                font-size: 16px !important
+            }
+
+            .modal-content {
+                width: 95%;
+                max-width: none;
+                margin: 1rem;
+                padding: 1rem;
+                border-radius: 12px
+            }
+
+            .hero-banner img {
+                height: 150px
+            }
+
+            .btn-ghost {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.75rem
+            }
+
+            #uptime {
+                font-size: 0.7rem
+            }
+
+            .empty-state img {
+                max-width: 180px !important
+            }
+
+            .empty-state h3 {
+                font-size: 1rem
+            }
+
+            .empty-state p {
+                font-size: 0.85rem
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 0.75rem;
+                padding: 1rem !important
+            }
+
+            .section-header h2 {
+                font-size: 1rem
+            }
+
+            .section-header>div {
+                width: 100%;
+                flex-wrap: wrap
+            }
+
+            .section-header .btn {
+                flex: 1;
+                min-width: 80px;
+                font-size: 0.75rem;
+                padding: 0.5rem
+            }
+
+            #tab-audit>.section>div[style*="display:flex"],
+            #tab-requests>.section>div[style*="display:flex"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0.75rem !important;
+                padding: 0.75rem !important
+            }
+
+            #tab-audit label,
+            #tab-requests label {
+                width: 100%
+            }
+
+            #tab-audit input[type="date"],
+            #tab-requests input[type="date"],
+            #tab-audit select,
+            #tab-requests select {
+                width: 100%;
+                min-height: 44px
+            }
+
+            #audit-stats,
+            #requests-stats {
+                margin-left: 0 !important;
+                text-align: center
+            }
+        }
+
+        html,
+        body {
+            max-width: 100vw;
+            overflow-x: hidden
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <h1 style="display:flex;align-items:center;gap:0.75rem;">
+            <img src="/assets/logo_3d.webp" alt="AgentRegistry" width="44" height="44"
+                style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 15px rgba(139,92,246,0.25);">
+            <span
+                style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-0.02em;">
+                Tiny<span
+                    style="background:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NPM</span>
+            </span>
+            <span style="font-weight:400;font-size:1.1rem;opacity:0.85;margin-left:0.25rem;">Admin</span>
+        </h1>
+        <div style="display:flex;align-items:center;gap:1.5rem;">
+            <a href="/docs/" class="btn btn-ghost"
+                style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                </svg>
+                Docs
+            </a>
+            <div class="status">
+                <div class="status-indicator">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="connection-status">Connecting...</span>
+                </div>
+                <div id="uptime" style="display:flex;flex-direction:column;align-items:flex-end;">
+                    <span
+                        style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;">Uptime</span>
+                    <span id="uptimetext"
+                        style="font-weight:600;font-variant-numeric:tabular-nums;font-size:0.9rem;">--:--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="container" role="main">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('dashboard')" aria-label="Dashboard Tab">
+                <span class="icon"><svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="9" rx="1" />
+                        <rect x="14" y="3" width="7" height="5" rx="1" />
+                        <rect x="14" y="12" width="7" height="9" rx="1" />
+                        <rect x="3" y="16" width="7" height="5" rx="1" />
+                    </svg></span>
+                Dashboard
+            </button>
+            <button class="tab" onclick="switchTab('metrics')" aria-label="Metrics Tab">
+                <span class="icon"><svg viewBox="0 0 24 24">
+                        <path d="M3 3v18h18" />
+                        <path d="m19 9-5 5-4-4-3 3" />
+                    </svg></span>
+                Metrics
+            </button>
+            <button class="tab" onclick="switchTab('packages')" aria-label="Packages Tab">
+                <span class="icon"><svg viewBox="0 0 24 24">
+                        <path
+                            d="m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                        <path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" />
+                    </svg></span>
+                Packages
+            </button>
+            <button class="tab" onclick="switchTab('security')" aria-label="Security Tab">
+                <span class="icon"><svg viewBox="0 0 24 24">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                    </svg></span>
+                Security
+            </button>
+            <button class="tab" onclick="switchTab('quarantine')" aria-label="Quarantine Tab">
+                <span class="icon"><svg viewBox="0 0 24 24">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg></span>
+                Quarantine
+            </button>
+            <button class="tab" onclick="switchTab('audit')" aria-label="Audit Log Tab">
+                <span class="icon"><svg viewBox="0 0 24 24">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                        <path d="M14 2v6h6" />
+                        <path d="M16 13H8" />
+                        <path d="M16 17H8" />
+                        <path d="M10 9H8" />
+                    </svg></span>
+                Audit
+            </button>
+            <button class="tab" onclick="switchTab('scans')" aria-label="Scans Tab">
+                <span class="icon"><svg viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.3-4.3" />
+                    </svg></span>
+                Scans
+            </button>
+            <button class="tab" onclick="switchTab('requests')" aria-label="Requests Tab">
+                <span class="icon"><svg viewBox="0 0 24 24">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg></span>
+                Requests
+            </button>
+            <button class="tab" onclick="switchTab('graph')" aria-label="Dependency Graph Tab">
+                <span class="icon"><svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
+                        <path d="m4.93 4.93 2.83 2.83m8.48 8.48 2.83 2.83m0-14.14-2.83 2.83m-8.48 8.48-2.83 2.83" />
+                    </svg></span>
+                Graph
+            </button>
+        </div>
+        <div id="tab-dashboard" class="tab-content active">
+            <div style="margin-bottom:1.5rem;border-radius:12px;overflow:hidden;border:1px solid var(--border);">
+                <img src="/assets/hero_premium.webp"
+                    srcset="/assets/hero_premium.webp 1x, /assets/hero_premium_2x.webp 2x"
+                    alt="AgentRegistry - Agent-to-Agent Package Sharing" width="500" height="500" loading="eager"
+                    fetchpriority="high" style="width:100%;height:250px;object-fit:cover;display:block;">
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">Packages</div>
+                    <div class="value" id="stat-packages">--</div>
+                    <div class="sub">Cached packages</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Tarballs</div>
+                    <div class="value" id="stat-tarballs">--</div>
+                    <div class="sub">Cached tarballs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Quarantine</div>
+                    <div class="value" id="stat-quarantine">--</div>
+                    <div class="sub">Blocked packages</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Memory</div>
+                    <div class="value" id="stat-memory">--</div>
+                    <div class="sub">Heap used</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Scans</div>
+                    <div class="value" id="stat-scans">--</div>
+                    <div class="sub" id="stat-scan-blocked">-- blocked</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">PI Threats</div>
+                    <div class="value" id="stat-pi-threats">--</div>
+                    <div class="sub">Prompt injection detections</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Requests</div>
+                    <div class="value" id="stat-requests">--</div>
+                    <div class="sub" id="stat-error-rate">-- error rate</div>
+                </div>
+            </div>
+        </div>
+        <div id="tab-metrics" class="tab-content">
+            <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                <div class="stat-card">
+                    <div class="label">Requests/sec</div>
+                    <div class="value" id="metric-rps">0</div>
+                    <div class="sub">Current throughput</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Cache Hit Rate</div>
+                    <div class="value" id="metric-hitrate">100%</div>
+                    <div class="sub">Overall hit rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Avg Latency</div>
+                    <div class="value" id="metric-latency">0 ms</div>
+                    <div class="sub">Response time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Total Requests</div>
+                    <div class="value" id="metric-total">0</div>
+                    <div class="sub">Since start</div>
+                </div>
+            </div>
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <path d="M3 3v18h18" />
+                                <path d="m19 9-5 5-4-4-3 3" />
+                            </svg></span> Requests per Second (60s)</h2>
+                    <div class="actions">
+                        <span id="metrics-status" style="color: var(--success); font-size: 0.8rem;">● Live</span>
+                    </div>
+                </div>
+                <div style="padding: 1.5rem; height: 150px;">
+                    <svg id="chart-rps" width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 300 100">
+                        <defs>
+                            <linearGradient id="rpsGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:rgba(139,92,246,0.4)" />
+                                <stop offset="100%" style="stop-color:rgba(139,92,246,0)" />
+                            </linearGradient>
+                        </defs>
+                        <path id="rps-area" fill="url(#rpsGradient)" stroke="none" />
+                        <path id="rps-line" fill="none" stroke="var(--accent)" stroke-width="2" />
+                    </svg>
+                </div>
+            </section>
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+                            </svg></span> Latency (60s)</h2>
+                </div>
+                <div style="padding: 1.5rem; height: 150px;">
+                    <svg id="chart-latency" width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 300 100">
+                        <defs>
+                            <linearGradient id="latencyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:rgba(6,182,212,0.4)" />
+                                <stop offset="100%" style="stop-color:rgba(6,182,212,0)" />
+                            </linearGradient>
+                        </defs>
+                        <path id="latency-area" fill="url(#latencyGradient)" stroke="none" />
+                        <path id="latency-line" fill="none" stroke="#06b6d4" stroke-width="2" />
+                    </svg>
+                </div>
+            </section>
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="12" r="6" />
+                                <circle cx="12" cy="12" r="2" />
+                            </svg></span> Cache Performance</h2>
+                </div>
+                <div style="padding: 1.5rem; display: flex; align-items: center; gap: 2rem;">
+                    <div style="flex: 1;">
+                        <div
+                            style="background: var(--bg-tertiary); border-radius: 8px; height: 24px; overflow: hidden;">
+                            <div id="hitrate-bar"
+                                style="background: var(--gradient-2); height: 100%; width: 100%; transition: width 0.3s;">
+                            </div>
+                        </div>
+                        <div
+                            style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">
+                            <span>Cache Hits: <span id="metric-hits">0</span></span>
+                            <span>Cache Misses: <span id="metric-misses">0</span></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div id="tab-packages" class="tab-content">
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <path
+                                    d="m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                                <path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" />
+                            </svg></span> Cached Packages</h2>
+                    <div class="actions">
+                        <input type="text" id="package-search" placeholder="Search packages..."
+                            aria-label="Search Packages"
+                            style="padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.85rem; width: 250px;"
+                            oninput="handlePackageSearch(this.value)">
+                    </div>
+                </div>
+                <div id="search-results" style="display: none; padding: 1rem;">
+                    <div class="empty-state">
+                        <p>Type to search...</p>
+                    </div>
+                </div>
+                <div id="packages-content">
+                    <div class="empty-state">
+                        <img src="/assets/empty_packages.webp" alt="No packages"
+                            style="max-width: 250px; height: auto; margin-bottom: 1.5rem; opacity: 0.9; filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.15)); border-radius: 12px;">
+                        <h3 style="margin-bottom:0.5rem;font-weight:600;font-size:1.1rem;">No packages</h3>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div id="tab-security" class="tab-content">
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                            </svg></span> IP Allowlist</h2>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                            <input type="checkbox" id="allowlist-enabled" onchange="toggleAllowlist()"
+                                style="width:18px;height:18px;">
+                            <span>Enabled</span>
+                        </label>
+                        <select id="allowlist-mode" onchange="updateAllowlistConfig()"
+                            aria-label="Allowlist mode selection"
+                            style="padding:0.5rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                            <option value="allowlist">Allowlist Mode</option>
+                            <option value="blocklist">Blocklist Mode</option>
+                        </select>
+                    </div>
+                </div>
+                <div
+                    style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="ip-pattern" placeholder="IP pattern (e.g., 192.168.1.* or 10.0.0.0/24)"
+                        aria-label="IP Pattern"
+                        style="flex:1;min-width:200px;padding:0.75rem 1rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                    <input type="text" id="ip-description" placeholder="Description (optional)"
+                        aria-label="IP Description"
+                        style="flex:1;min-width:150px;padding:0.75rem 1rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                    <button class="btn btn-primary" onclick="addIPEntry()">➕ Add Entry</button>
+                </div>
+                <div class="section-content" style="padding:0;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortAllowlistBy('pattern')">Pattern</th>
+                                <th class="sortable" onclick="sortAllowlistBy('description')">Description</th>
+                                <th class="sortable" onclick="sortAllowlistBy('created_at')">Created</th>
+                                <th class="sortable" onclick="sortAllowlistBy('enabled')">Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allowlist-entries">
+                            <tr>
+                                <td colspan="5" class="empty-state">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg></span> Test IP Access</h2>
+                </div>
+                <div style="padding:1rem 1.5rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="test-ip" placeholder="Enter IP to test (e.g., 192.168.1.1)"
+                        aria-label="Test IP Address"
+                        style="flex:1;min-width:200px;padding:0.75rem 1rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                    <button class="btn" onclick="testIPAccess()">🧪 Test</button>
+                    <div id="test-result" style="padding:0.5rem 1rem;border-radius:8px;display:none;"></div>
+                </div>
+            </section>
+            <!-- Package Allowlist Section -->
+            <section class="section" style="margin-top:1.5rem;">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <path
+                                    d="m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                                <path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" />
+                                <path d="m7.5 4.21 9 5.2" style="stroke:#10b981;" />
+                            </svg></span> Package Allowlist</h2>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                            <input type="checkbox" id="pkg-allowlist-enabled" onchange="togglePackageAllowlist()"
+                                style="width:18px;height:18px;" checked>
+                            <span>Enabled</span>
+                        </label>
+                        <select id="pkg-category-filter" onchange="filterPackageAllowlist()"
+                            aria-label="Filter by category"
+                            style="padding:0.5rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                            <option value="">All Categories</option>
+                        </select>
+                        <span id="pkg-allowlist-stats" style="font-size:0.8rem;color:var(--text-secondary);"></span>
+                    </div>
+                </div>
+                <div
+                    style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="pkg-pattern" placeholder="Package pattern (e.g., lodash, @scope/, pkg-*)"
+                        aria-label="Package Pattern"
+                        style="flex:1;min-width:200px;padding:0.75rem 1rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                    <input type="text" id="pkg-description" placeholder="Description (optional)"
+                        aria-label="Package Description"
+                        style="flex:1;min-width:150px;padding:0.75rem 1rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                    <select id="pkg-category" aria-label="Package category"
+                        style="padding:0.75rem 1rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                        <option value="custom">custom</option>
+                        <option value="verified">verified</option>
+                        <option value="build-tools">build-tools</option>
+                        <option value="testing">testing</option>
+                        <option value="observability">observability</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="addPackageEntry()">➕ Add Package</button>
+                </div>
+                <div class="section-content" style="padding:0;max-height:400px;overflow-y:auto;">
+                    <table class="table-compact">
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortPackageAllowlistBy('pattern')">Pattern</th>
+                                <th class="sortable" onclick="sortPackageAllowlistBy('description')">Description</th>
+                                <th class="sortable" onclick="sortPackageAllowlistBy('category')">Category</th>
+                                <th class="sortable" onclick="sortPackageAllowlistBy('enabled')">Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pkg-allowlist-entries">
+                            <tr>
+                                <td colspan="5" class="empty-state">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+        <div id="tab-quarantine" class="tab-content">
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg></span> Quarantine</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="approveAllQuarantine()">Approve All</button>
+                        <button class="btn" onclick="rescanQuarantine()">Rescan All</button>
+                        <button class="btn btn-danger" onclick="clearQuarantine()">Clear All</button>
+                    </div>
+                </div>
+                <div class="setting-row"
+                    style="display:flex; align-items:center; gap:1rem; padding:0.75rem 1rem; background:rgba(139,92,246,0.1); border-radius:8px; margin-bottom:1rem; border:1px solid rgba(139,92,246,0.2);">
+                    <label class="toggle-switch"
+                        style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; flex:1;">
+                        <input type="checkbox" id="auto-allow-toggle" onchange="toggleAutoAllow(this.checked)" checked>
+                        <span class="toggle-slider"></span>
+                        <span style="font-weight:500;">Auto-allow local publishes</span>
+                    </label>
+                    <span style="color:var(--text-secondary); font-size:0.85rem;">When enabled, packages published
+                        locally skip quarantine</span>
+                </div>
+                <div id="quarantine-content">
+                    <div class="empty-state">
+                        <img src="/assets/empty_quarantine.webp" alt="No quarantined packages"
+                            style="max-width: 250px; height: auto; margin-bottom: 1.5rem; opacity: 0.9; filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.15)); border-radius: 12px;">
+                        <h3 style="margin-bottom:0.5rem;font-weight:600;font-size:1.1rem;">No quarantined packages</h3>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div id="tab-audit" class="tab-content">
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                                <path d="M14 2v6h6" />
+                                <path d="M16 13H8" />
+                                <path d="M16 17H8" />
+                                <path d="M10 9H8" />
+                            </svg></span> Audit Log</h2>
+                    <div style="display:flex;gap:0.5rem;">
+                        <button class="btn" onclick="send('getAuditLogs')">Refresh</button>
+                        <button class="btn btn-primary" onclick="exportAuditLogs('json')">Export JSON</button>
+                        <button class="btn btn-primary" onclick="exportAuditLogs('csv')">Export CSV</button>
+                    </div>
+                </div>
+                <div
+                    style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:0.5rem;">
+                        <span>From:</span>
+                        <input type="date" id="audit-start-date"
+                            style="padding:0.5rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                    </label>
+                    <label style="display:flex;align-items:center;gap:0.5rem;">
+                        <span>To:</span>
+                        <input type="date" id="audit-end-date"
+                            style="padding:0.5rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                    </label>
+                    <select id="audit-severity-filter" aria-label="Filter by severity"
+                        style="padding:0.5rem;border-radius:8px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);">
+                        <option value="">All Severities</option>
+                        <option value="info">Info</option>
+                        <option value="warn">Warning</option>
+                        <option value="error">Error</option>
+                    </select>
+                    <span id="audit-stats"
+                        style="margin-left:auto;font-size:0.85rem;color:var(--text-secondary);"></span>
+                </div>
+                <div id="audit-content">
+                    <div class="empty-state">
+                        <img src="/assets/empty_audit.webp" alt="No audit logs"
+                            style="max-width: 250px; height: auto; margin-bottom: 1.5rem; opacity: 0.9; filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.15)); border-radius: 12px;">
+                        <h3 style="margin-bottom:0.5rem;font-weight:600;font-size:1.1rem;">No audit logs</h3>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div id="tab-scans" class="tab-content">
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg></span> Security Scans</h2>
+                    <button class="btn" onclick="send('getScanHistory')">Refresh</button>
+                </div>
+                <div id="scans-content">
+                    <div class="empty-state">
+                        <img src="/assets/empty_scans.webp" alt="No scan history"
+                            style="max-width: 250px; height: auto; margin-bottom: 1.5rem; opacity: 0.9; filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.15)); border-radius: 12px;">
+                        <h3 style="margin-bottom:0.5rem;font-weight:600;font-size:1.1rem;">No scan history</h3>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div id="tab-requests" class="tab-content">
+            <section class="section">
+                <div class="section-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                            </svg></span> Request Logs</h2>
+                    <button class="btn" onclick="send('getRequestLogs')">Refresh</button>
+                </div>
+                <div id="requests-content">
+                    <div class="empty-state">
+                        <img src="/assets/empty_audit.webp" alt="No request logs"
+                            style="max-width: 250px; height: auto; margin-bottom: 1.5rem; opacity: 0.9; filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.15)); border-radius: 12px;">
+                        <h3 style="margin-bottom:0.5rem;font-weight:600;font-size:1.1rem;">No request logs</h3>
+                    </div>
+                </div>
+            </section>
+        </div>
+        </div>
+        <div class="toast" id="toast"></div>
+        <div class="loading-overlay" id="loading">
+            <div class="spinner"></div>
+            <div id="loading-text" style="color:var(--text-primary)">Scanning...</div>
+        </div>
+        <div class="modal" id="rescan-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><span class="icon icon-lg"><svg viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg></span> Rescan Results</h2>
+                    <button class="modal-close" onclick="closeRescanModal()">×</button>
+                </div>
+                <div id="rescan-results"></div>
+            </div>
+        </div>
+        <div id="tab-graph" class="tab-content">
+            <section class="section">
+                <div class="section-header">
+                    <h2>🕸️ Dependency Graph</h2>
+                    <div class="actions" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                        <input type="text" id="graph-search" placeholder="Search packages..."
+                            oninput="applyGraphFilter()" aria-label="Search packages in graph"
+                            style="padding:0.5rem 0.75rem;border-radius:6px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);width:180px;">
+                        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem;">
+                            <input type="checkbox" id="graph-local-only" onchange="applyGraphFilter()"
+                                style="width:16px;height:16px;">
+                            <span>Only Local</span>
+                        </label>
+                        <span id="graph-stats" style="font-size:0.8rem;color:var(--text-secondary);"></span>
+                        <button class="btn" onclick="initGraph()">Refresh</button>
+                    </div>
+                </div>
+                <div id="graph-container"
+                    style="height: 600px; position: relative; overflow: hidden; background: var(--bg-primary); border-radius: 8px;">
+                    <div id="graph-loading"
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-secondary); display: none;">
+                        Loading graph...
+                    </div>
+                </div>
+            </section>
+        </div>
+        <script>function escapeHtml(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+            const ICONS = {
+                package: '<svg viewBox="0 0 24 24"><path d="m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg>',
+                shield: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>',
+                lock: '<svg viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+                file: '<svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/></svg>',
+                search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+                activity: '<svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+                check: '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>',
+                trash: '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
+                eye: '<svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>'
+            };
+            function emptyState(imageOrIcon, title, subtitle = '') {
+                const isImage = imageOrIcon.includes('/') || imageOrIcon.includes('.');
+                const content = isImage
+                    ? `<img src="${imageOrIcon}" alt="${title}" width="250" height="250" style="max-width: 250px; height: auto; margin-bottom: 1.5rem; opacity: 0.9; filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.15)); border-radius: 12px;">`
+                    : `<div class="empty-icon">${ICONS[imageOrIcon] || ICONS.package}</div>`;
+                return `<div class="empty-state">
+${content}
+<h3 style="margin-bottom:0.5rem;font-weight:600;font-size:1.1rem;">${title}</h3>
+${subtitle ? `<p style="font-size:0.9rem;opacity:0.85;">${subtitle}</p>` : ''}
+</div>`;
+            }
+            function badge(type, text, withIcon = true) {
+                const icons = {
+                    safe: '<svg viewBox="0 0 24 24" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2;"><path d="m20 6-11 11-5-5"/></svg>',
+                    blocked: '<svg viewBox="0 0 24 24" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2;"><path d="m18 6-12 12M6 6l12 12"/></svg>',
+                    warning: '<svg viewBox="0 0 24 24" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2;"><path d="M12 9v4m0 4h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>'
+                };
+                const icon = withIcon && icons[type] ? icons[type] : '';
+                return `<span class="badge badge-${type}">${icon}${text}</span>`;
+            }
+            let ws = null;
+            let state = { packages: [], quarantine: [], stats: {}, packageAllowlist: { config: { enabled: true }, entries: [], categories: [] } };
+            let metricsInterval = null;
+            const sortState = {
+                packages: { column: null, direction: 'asc' },
+                audit: { column: null, direction: 'asc' },
+                scans: { column: null, direction: 'asc' },
+                requests: { column: null, direction: 'asc' },
+                allowlist: { column: null, direction: 'asc' },
+                quarantine: { column: null, direction: 'asc' },
+                pkgAllowlist: { column: null, direction: 'asc' }
+            };
+            function sortData(data, column, direction, type = 'string') {
+                return [...data].sort((a, b) => {
+                    let valA = a[column];
+                    let valB = b[column];
+                    if (typeof valA === 'undefined' && typeof a === 'string') valA = a;
+                    if (typeof valB === 'undefined' && typeof b === 'string') valB = b;
+                    if (type === 'number') {
+                        valA = parseFloat(valA) || 0;
+                        valB = parseFloat(valB) || 0;
+                    } else if (type === 'date') {
+                        valA = new Date(valA).getTime() || 0;
+                        valB = new Date(valB).getTime() || 0;
+                    } else {
+                        valA = String(valA || '').toLowerCase();
+                        valB = String(valB || '').toLowerCase();
+                    }
+                    if (valA < valB) return direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+            function toggleSort(table, column, type, renderFn) {
+                const current = sortState[table];
+                if (current.column === column) {
+                    current.direction = current.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    current.column = column;
+                    current.direction = 'asc';
+                }
+                renderFn();
+            }
+            function getSortClass(table, column) {
+                const current = sortState[table];
+                if (current.column !== column) return 'sortable';
+                return `sortable sort-${current.direction}`;
+            }
+            async function fetchMetrics() {
+                try {
+                    const res = await fetch('/-/admin/metrics', {
+                        headers: { 'X-Admin-Token': ADMIN_SESSION_TOKEN }
+                    });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    updateMetricsUI(data);
+                } catch (e) {
+                    console.error('Metrics fetch error:', e);
+                }
+            }
+            function updateMetricsUI(data) {
+                document.getElementById('metric-rps').textContent = data.currentRps || 0;
+                document.getElementById('metric-hitrate').textContent = data.overallCacheHitRate.toFixed(1) + '%';
+                document.getElementById('metric-latency').textContent = (data.currentLatencyMs || 0).toFixed(1) + ' ms';
+                document.getElementById('metric-total').textContent = formatNumber(data.totalRequests);
+                document.getElementById('metric-hits').textContent = formatNumber(data.cacheHits);
+                document.getElementById('metric-misses').textContent = formatNumber(data.cacheMisses);
+                const hitRateBar = document.getElementById('hitrate-bar');
+                if (hitRateBar) {
+                    hitRateBar.style.width = data.overallCacheHitRate + '%';
+                }
+                drawChart('rps', data.requestsPerSecond);
+                drawChart('latency', data.avgLatencyMs);
+            }
+            function drawChart(type, points) {
+                if (!points || points.length === 0) return;
+                const line = document.getElementById(type + '-line');
+                const area = document.getElementById(type + '-area');
+                if (!line || !area) return;
+                const values = points.map(p => p.v);
+                const maxVal = Math.max(...values, 1);
+                const width = 300;
+                const height = 100;
+                const step = width / (values.length - 1 || 1);
+                let linePath = '';
+                let areaPath = `M 0 ${height}`;
+                values.forEach((v, i) => {
+                    const x = i * step;
+                    const y = height - (v / maxVal) * (height - 10);
+                    if (i === 0) {
+                        linePath = `M ${x} ${y}`;
+                        areaPath += ` L ${x} ${y}`;
+                    } else {
+                        linePath += ` L ${x} ${y}`;
+                        areaPath += ` L ${x} ${y}`;
+                    }
+                });
+                areaPath += ` L ${width} ${height} Z`;
+                line.setAttribute('d', linePath);
+                area.setAttribute('d', areaPath);
+            }
+            function formatNumber(n) {
+                if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+                if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+                return n || 0;
+            }
+            function startMetricsPolling() {
+                fetchMetrics();
+                metricsInterval = setInterval(fetchMetrics, 1000);
+            }
+            function stopMetricsPolling() {
+                if (metricsInterval) {
+                    clearInterval(metricsInterval);
+                    metricsInterval = null;
+                }
+            }
+            let searchTimeout = null;
+            async function handlePackageSearch(query) {
+                if (searchTimeout) clearTimeout(searchTimeout);
+                const resultsContainer = document.getElementById('search-results');
+                const packagesContainer = document.getElementById('packages-content');
+                if (!query || query.length < 2) {
+                    resultsContainer.style.display = 'none';
+                    packagesContainer.style.display = 'block';
+                    return;
+                }
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`/-/admin/search?q=${encodeURIComponent(query)}`, {
+                            headers: { 'X-Admin-Token': window.ADMIN_SESSION_TOKEN }
+                        });
+                        const data = await res.json();
+                        packagesContainer.style.display = 'none';
+                        resultsContainer.style.display = 'block';
+                        if (data.results.length === 0) {
+                            resultsContainer.innerHTML = emptyState('/assets/empty_packages.webp', 'No packages matching "' + escapeHtml(query) + '"');
+                            return;
+                        }
+                        resultsContainer.innerHTML = `
+<div style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.85rem;">
+Found ${data.count} package${data.count !== 1 ? 's' : ''} matching "${query}"
+</div>
+<table><thead><tr>
+<th>Package</th>
+<th>Version</th>
+<th>Description</th>
+<th>Source</th>
+</tr></thead><tbody>
+${data.results.map(pkg => `
+<tr>
+<td><strong>${pkg.name}</strong></td>
+<td><span class="badge">${pkg.version}</span></td>
+<td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${pkg.description || '-'}</td>
+<td><span class="badge ${pkg.source === 'local' ? '' : 'secondary'}">${pkg.source}</span></td>
+</tr>
+`).join('')}
+</tbody></table>
+`;
+                    } catch (e) {
+                        console.error('Search error:', e);
+                    }
+                }, 300);
+            }
+            function connect() {
+                const token = window.ADMIN_SESSION_TOKEN;
+                if (!token) {
+                    showToast('No session token - reload page', 'error');
+                    return;
+                }
+                const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+                ws = new WebSocket(`${protocol}//${location.host}/-/admin/ws?token=${token}`);
+                ws.onopen = () => {
+                    updateStatus(true);
+                    showToast('Connected', 'success');
+                    send('getStats');
+                    send('getQuarantine');
+                    send('getCache');
+                    send('getAutoAllowSetting');
+                    send('getAllowlist');
+                    send('getPackageAllowlist');
+                };
+                ws.onmessage = (e) => {
+                    try {
+                        const msg = JSON.parse(e.data);
+                        handleMessage(msg);
+                    } catch (err) {
+                        console.error('Parse error:', err);
+                    }
+                };
+                ws.onclose = (e) => {
+                    updateStatus(false);
+                    if (e.code === 4001) {
+                        showToast('Session replaced', 'error');
+                        // Still reconnect after a short delay
+                        setTimeout(connect, 500);
+                    } else {
+                        showToast('Disconnected - reconnecting...', 'error');
+                        setTimeout(connect, 500);
+                    }
+                };
+                ws.onerror = () => showToast('Connection error', 'error');
+            }
+            function send(action, payload = {}) {
+                if (ws?.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ action, payload }));
+                }
+            }
+            function handleMessage(msg) {
+                switch (msg.type) {
+                    case 'connected':
+                        console.log('✅ Authenticated');
+                        break;
+                    case 'stats':
+                        renderStats(msg.data);
+                        break;
+                    case 'quarantine':
+                        state.quarantine = msg.data.files || [];
+                        renderQuarantine();
+                        break;
+                    case 'cache':
+                        state.packages = msg.data.packages || [];
+                        renderPackages();
+                        break;
+                    case 'auditLogs':
+                        renderAuditLogs(msg.data.logs || []);
+                        break;
+                    case 'scanHistory':
+                        renderScans(msg.data.scans || []);
+                        break;
+                    case 'requestLogs':
+                        renderRequests(msg.data.requests || []);
+                        break;
+                    case 'quarantineCleared':
+                        showToast(`Cleared ${msg.data.cleared} files`, 'success');
+                        send('getQuarantine');
+                        send('getStats');
+                        break;
+                    case 'rescanComplete':
+                        hideLoading();
+                        const results = msg.data.results || [];
+                        const approved = msg.data.approved || 0;
+                        const stillBlocked = results.filter(r => !r.safe).length;
+                        showToast(`Rescan complete: ${approved} approved, ${stillBlocked} still blocked`, approved > 0 ? 'success' : 'error');
+                        send('getQuarantine');
+                        send('getStats');
+                        if (results.length > 0) {
+                            showRescanModal(results);
+                        }
+                        break;
+                    case 'packageDeleted':
+                        showToast(`Deleted ${msg.data.name}`, 'success');
+                        send('getCache');
+                        send('getStats');
+                        break;
+                    case 'quarantineApproved':
+                        showToast(`Approved ${msg.data.file}`, 'success');
+                        send('getQuarantine');
+                        send('getStats');
+                        break;
+                    case 'allQuarantineApproved':
+                        hideLoading();
+                        showToast(`Approved ${msg.data.count} packages`, 'success');
+                        send('getQuarantine');
+                        send('getStats');
+                        break;
+                    case 'quarantineFileDeleted':
+                        showToast(`Deleted ${msg.data.file}`, 'success');
+                        send('getQuarantine');
+                        send('getStats');
+                        break;
+                    case 'autoAllowSetting':
+                        updateAutoAllowToggle(msg.data.enabled);
+                        break;
+                    case 'autoAllowChanged':
+                        updateAutoAllowToggle(msg.data.enabled);
+                        showToast(`Auto-allow local publish ${msg.data.enabled ? 'enabled' : 'disabled'}`, 'success');
+                        break;
+                    case 'package_blocked':
+                        showToast(`🚨 Package blocked: ${msg.data.name}@${msg.data.version} (${msg.data.issues} issues)`, 'error');
+                        send('getQuarantine');
+                        send('getStats');
+                        break;
+                    case 'package_published':
+                        showToast(`📦 Published: ${msg.data.name}@${msg.data.version}`, 'success');
+                        send('getCache');
+                        send('getStats');
+                        break;
+                    case 'quarantine_rescanned':
+                        showToast(`🔄 Rescan complete: ${msg.data.approved}/${msg.data.total} approved`, msg.data.approved > 0 ? 'success' : 'error');
+                        send('getQuarantine');
+                        send('getStats');
+                        break;
+                    case 'package_approved':
+                        showToast(`✅ Approved: ${msg.data.file}`, 'success');
+                        send('getQuarantine');
+                        send('getStats');
+                        break;
+                    case 'quarantine_bulk_approved':
+                        showToast(`✅ Bulk approved: ${msg.data.count} packages`, 'success');
+                        send('getQuarantine');
+                        send('getStats');
+                        break;
+                    case 'error':
+                        hideLoading();
+                        showToast(msg.data?.message || 'Error', 'error');
+                        break;
+                    case 'graphRoots':
+                        graphAllNodes = msg.data.nodes || [];
+                        const localOnly = document.getElementById('graph-local-only')?.checked;
+                        const nodesToRender = localOnly ? graphAllNodes.filter(n => n.group === 'local') : graphAllNodes;
+                        renderGraphRoots(nodesToRender);
+                        break;
+                    case 'graphNode':
+                        expandGraphNode(msg.data.parent, msg.data.children || []);
+                        break;
+                    case 'allowlist':
+                        document.getElementById('allowlist-enabled').checked = msg.data.config?.enabled || false;
+                        document.getElementById('allowlist-mode').value = msg.data.config?.mode || 'allowlist';
+                        allowlistData = msg.data.entries || [];
+                        renderAllowlistTable();
+                        break;
+                    case 'allowlistConfigUpdated':
+                        showToast('Config updated', 'success');
+                        break;
+                    case 'allowlistEntryAdded':
+                        showToast('Entry added', 'success');
+                        document.getElementById('ip-pattern').value = '';
+                        document.getElementById('ip-description').value = '';
+                        send('getAllowlist');
+                        break;
+                    case 'allowlistEntryRemoved':
+                        showToast('Entry removed', 'success');
+                        send('getAllowlist');
+                        break;
+                    case 'allowlistEntryToggled':
+                        showToast(msg.data.enabled ? 'Entry enabled' : 'Entry disabled', 'success');
+                        send('getAllowlist');
+                        break;
+                    case 'ipTestResult':
+                        const resultDiv = document.getElementById('test-result');
+                        resultDiv.style.display = 'block';
+                        resultDiv.style.background = msg.data.allowed ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+                        resultDiv.style.color = msg.data.allowed ? 'var(--success)' : 'var(--danger)';
+                        resultDiv.textContent = `${msg.data.allowed ? '✅ Allowed' : '❌ Denied'}: ${msg.data.reason}`;
+                        break;
+                    // Package Allowlist Handlers
+                    case 'packageAllowlist':
+                        state.packageAllowlist.config = msg.data.config || { enabled: true };
+                        state.packageAllowlist.entries = msg.data.entries || [];
+                        state.packageAllowlist.categories = msg.data.categories || [];
+                        document.getElementById('pkg-allowlist-enabled').checked = state.packageAllowlist.config.enabled;
+                        updatePkgCategoryFilter();
+                        renderPackageAllowlistTable();
+                        break;
+                    case 'packageAllowlistConfigUpdated':
+                        showToast('Package allowlist config updated', 'success');
+                        send('getPackageAllowlist');
+                        break;
+                    case 'packageAllowlistEntryAdded':
+                        showToast('Package added to allowlist', 'success');
+                        document.getElementById('pkg-pattern').value = '';
+                        document.getElementById('pkg-description').value = '';
+                        send('getPackageAllowlist');
+                        break;
+                    case 'packageAllowlistEntryRemoved':
+                        showToast('Package removed from allowlist', 'success');
+                        send('getPackageAllowlist');
+                        break;
+                    case 'packageAllowlistEntryToggled':
+                        showToast(msg.data.enabled ? 'Entry enabled' : 'Entry disabled', 'success');
+                        send('getPackageAllowlist');
+                        break;
+                    case 'packageAllowlistReseeded':
+                        showToast(`Defaults reseeded: ${msg.data.added} added`, 'success');
+                        send('getPackageAllowlist');
+                        break;
+                }
+            }
+            function updateStatus(connected) {
+                document.getElementById('status-dot').className = 'status-dot' + (connected ? ' connected' : '');
+                document.getElementById('connection-status').textContent = connected ? 'Connected' : 'Disconnected';
+            }
+            function renderStats(s) {
+                document.getElementById('stat-packages').textContent = s.packages ?? '--';
+                document.getElementById('stat-tarballs').textContent = s.tarballs ?? '--';
+                document.getElementById('stat-quarantine').textContent = s.quarantine ?? '--';
+                document.getElementById('stat-memory').textContent = formatMemory(s.memoryUsed);
+                document.getElementById('uptime').textContent = formatUptime(s.uptime);
+                if (s.scanStats) {
+                    document.getElementById('stat-scans').textContent = s.scanStats.total ?? '--';
+                    document.getElementById('stat-scan-blocked').textContent = `${s.scanStats.blocked ?? 0} blocked`;
+                }
+                // Update PI threats from quarantine data
+                const piThreats = state.quarantine.filter(q => typeof q === 'object' && q.piScore > 0).length;
+                document.getElementById('stat-pi-threats').textContent = piThreats;
+                if (s.requestStats) {
+                    document.getElementById('stat-requests').textContent = s.requestStats.total ?? '--';
+                    document.getElementById('stat-error-rate').textContent = `${(s.requestStats.errorRate ?? 0).toFixed(1)}% error rate`;
+                }
+            }
+            function renderPackages() {
+                const el = document.getElementById('packages-content');
+                if (!state.packages.length) {
+                    el.innerHTML = emptyState('/assets/empty_packages.webp', 'No packages yet', 'Publish your first package to see it here');
+                    return;
+                }
+                const { column, direction } = sortState.packages;
+                let sorted = [...state.packages];
+                if (column === 'name') {
+                    sorted.sort((a, b) => {
+                        const cmp = a.toLowerCase().localeCompare(b.toLowerCase());
+                        return direction === 'asc' ? cmp : -cmp;
+                    });
+                }
+                el.innerHTML = `<table><thead><tr>
+<th class="${getSortClass('packages', 'name')}" onclick="toggleSort('packages', 'name', 'string', renderPackages)">Package</th>
+<th>Actions</th>
+</tr></thead><tbody>
+${sorted.map(name => `<tr><td><strong>${escapeHtml(name)}</strong></td><td>
+<button class="btn btn-danger" onclick="deletePackage('${escapeHtml(name)}')">Delete</button>
+</td></tr>`).join('')}</tbody></table>`;
+            }
+            function renderQuarantine() {
+                const el = document.getElementById('quarantine-content');
+                if (!state.quarantine.length) {
+                    el.innerHTML = emptyState('/assets/empty_quarantine.webp', 'All clear', 'No packages in quarantine');
+                    return;
+                }
+                el.innerHTML = `<table><thead><tr><th>Package</th><th>PI Score</th><th>Issues</th><th>Actions</th></tr></thead><tbody>
+${state.quarantine.map((q, i) => {
+                    const file = typeof q === 'string' ? q : q.file;
+                    const issues = typeof q === 'object' ? q.issues || [] : [];
+                    const issuesCount = typeof q === 'object' ? q.issuesCount || 0 : 0;
+                    const piScore = typeof q === 'object' ? q.piScore || 0 : 0;
+                    const piCount = typeof q === 'object' ? q.piCount || 0 : 0;
+                    const piFindings = typeof q === 'object' ? q.piFindings || [] : [];
+                    const hasIssues = issues.length > 0;
+                    const hasPiFindings = piFindings.length > 0;
+                    const safeFile = escapeHtml(file);
+                    const piBadgeClass = piScore >= 50 ? 'badge-pi-high' : piScore >= 20 ? 'badge-pi-medium' : 'badge-pi-low';
+                    return `<tr>
+<td>
+<strong>${safeFile}</strong>
+${issuesCount > 0 ? `<span class="badge badge-blocked" style="margin-left:0.5rem">${issuesCount} issues</span>` : ''}
+</td>
+<td>${piScore > 0 ? `<span class="badge ${piBadgeClass}" title="${piCount} findings">${piScore}/100</span>${hasPiFindings ? ` <button class="btn" style="padding:0.2rem 0.5rem;font-size:0.7rem" onclick="togglePiFindings(${i})">Details</button>` : ''}` : '<span style="color:var(--text-secondary)">0</span>'}</td>
+<td>${hasIssues ? `<button class="btn" onclick="toggleQuarantineIssues(${i})">View</button>` : '<span style="color:var(--text-secondary)">-</span>'}</td>
+<td>
+<button class="btn btn-primary" onclick="approveQuarantine('${safeFile}')" title="Move to tarballs">Approve</button>
+<button class="btn btn-danger" onclick="deleteQuarantine('${safeFile}')" title="Delete permanently">Delete</button>
+</td>
+</tr>
+${hasPiFindings ? `<tr id="q-pi-${i}" style="display:none"><td colspan="4" style="background:var(--bg-tertiary);padding:1rem">
+<strong style="font-size:0.8rem">🔍 Prompt Injection Findings (${piCount})</strong>
+<ul class="pi-findings-detail">
+${piFindings.map(f => `<li>
+<span class="badge badge-${f.severity === 'critical' ? 'blocked' : f.severity === 'high' ? 'warning' : 'info'}" style="font-size:0.65rem">${escapeHtml(f.severity)}</span>
+<code>${escapeHtml(f.pattern)}</code>
+<small style="color:var(--text-secondary)"> in ${escapeHtml(f.file)}</small>
+${f.context ? `<div style="margin-top:0.25rem;font-size:0.75rem;color:var(--text-secondary);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:500px">${escapeHtml(f.context)}</div>` : ''}
+</li>`).join('')}
+</ul>
+</td></tr>` : ''}
+${hasIssues ? `<tr id="q-issues-${i}" style="display:none"><td colspan="4" style="background:var(--bg-tertiary);padding:1rem">
+<ul style="margin:0;padding-left:1.5rem;font-size:0.875rem">
+${issues.map(issue => `<li style="margin-bottom:0.5rem">
+<span class="badge badge-${issue.severity === 'critical' ? 'blocked' : 'info'}">${escapeHtml(issue.severity)}</span>
+${escapeHtml(issue.description)}
+${issue.file ? `<small style="color:var(--text-secondary)"> (${escapeHtml(issue.file)})</small>` : ''}
+</li>`).join('')}
+</ul>
+</td></tr>` : ''}`;
+                }).join('')}</tbody></table>`;
+            }
+            function toggleQuarantineIssues(index) {
+                const row = document.getElementById('q-issues-' + index);
+                if (row) {
+                    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+                }
+            }
+            function togglePiFindings(index) {
+                const row = document.getElementById('q-pi-' + index);
+                if (row) {
+                    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+                }
+            }
+            let auditLogsData = [];
+            function renderAuditLogs(logs) {
+                if (logs) auditLogsData = logs;
+                const el = document.getElementById('audit-content');
+                if (!auditLogsData.length) {
+                    el.innerHTML = emptyState('/assets/empty_audit.webp', 'No audit logs', 'Activity will appear here');
+                    return;
+                }
+                const { column, direction } = sortState.audit;
+                const sorted = column ? sortData(auditLogsData, column, direction, column === 'created_at' ? 'date' : 'string') : auditLogsData;
+                el.innerHTML = `<table class="table-compact"><thead><tr>
+<th class="${getSortClass('audit', 'action')}" onclick="toggleSort('audit', 'action', 'string', renderAuditLogs)">Action</th>
+<th class="${getSortClass('audit', 'target')}" onclick="toggleSort('audit', 'target', 'string', renderAuditLogs)">Target</th>
+<th class="${getSortClass('audit', 'severity')}" onclick="toggleSort('audit', 'severity', 'string', renderAuditLogs)">Severity</th>
+<th class="${getSortClass('audit', 'created_at')}" onclick="toggleSort('audit', 'created_at', 'date', renderAuditLogs)">Time</th>
+</tr></thead><tbody>
+${sorted.map(l => `<tr><td>${escapeHtml(l.action)}</td><td>${escapeHtml(l.target || '-')}</td>
+<td><span class="badge badge-${l.severity === 'warn' ? 'blocked' : 'info'}">${escapeHtml(l.severity)}</span></td>
+<td>${l.created_at}</td></tr>`).join('')}</tbody></table>`;
+            }
+            let scansData = [];
+            function renderScans(scans) {
+                if (scans) scansData = scans;
+                const el = document.getElementById('scans-content');
+                if (!scansData.length) {
+                    el.innerHTML = emptyState('/assets/empty_scans.webp', 'No scan history', 'Scans will appear when packages are uploaded');
+                    return;
+                }
+                const { column, direction } = sortState.scans;
+                let sorted = scansData;
+                if (column) {
+                    const type = ['issues_count', 'scan_time_ms'].includes(column) ? 'number' : 'string';
+                    sorted = sortData(scansData, column, direction, type);
+                }
+                el.innerHTML = `<table><thead><tr>
+<th class="${getSortClass('scans', 'package_name')}" onclick="toggleSort('scans', 'package_name', 'string', renderScans)">Package</th>
+<th class="${getSortClass('scans', 'version')}" onclick="toggleSort('scans', 'version', 'string', renderScans)">Version</th>
+<th class="${getSortClass('scans', 'safe')}" onclick="toggleSort('scans', 'safe', 'string', renderScans)">Status</th>
+<th class="${getSortClass('scans', 'issues_count')}" onclick="toggleSort('scans', 'issues_count', 'number', renderScans)">Issues</th>
+<th class="${getSortClass('scans', 'scan_time_ms')}" onclick="toggleSort('scans', 'scan_time_ms', 'number', renderScans)">Time</th>
+<th>Details</th>
+</tr></thead><tbody>
+${sorted.map((s, i) => {
+                    const issues = s.issues ? (typeof s.issues === 'string' ? JSON.parse(s.issues) : s.issues) : [];
+                    const hasIssues = issues.length > 0;
+                    return `<tr>
+<td>${escapeHtml(s.package_name)}</td>
+<td>${escapeHtml(s.version)}</td>
+<td>${s.safe ? badge('safe', 'Safe') : badge('blocked', 'Blocked')}</td>
+<td>${s.issues_count}</td>
+<td>${s.scan_time_ms}ms</td>
+<td>${hasIssues ? `<button class="btn" onclick="toggleIssueDetails(${i})">View</button>` : '-'}</td>
+</tr>
+${hasIssues ? `<tr id="issue-row-${i}" style="display:none"><td colspan="6" style="background:var(--bg-primary);padding:1rem">
+<strong>Security Issues:</strong>
+<ul style="margin:0.5rem 0 0 1rem;font-size:0.875rem">
+${issues.map(issue => `<li><span class="badge badge-${issue.severity === 'critical' ? 'blocked' : 'info'}">${escapeHtml(issue.severity)}</span> ${escapeHtml(issue.description)} ${issue.file ? `<small>(${escapeHtml(issue.file)})</small>` : ''}</li>`).join('')}
+</ul>
+</td></tr>` : ''}`;
+                }).join('')}</tbody></table>`;
+            }
+            function toggleIssueDetails(index) {
+                const row = document.getElementById('issue-row-' + index);
+                if (row) {
+                    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+                }
+            }
+            let requestsData = [];
+            function renderRequests(reqs) {
+                if (reqs) requestsData = reqs;
+                const el = document.getElementById('requests-content');
+                if (!requestsData.length) {
+                    el.innerHTML = emptyState('/assets/empty_audit.webp', 'No request logs', 'API requests will appear here');
+                    return;
+                }
+                const { column, direction } = sortState.requests;
+                let sorted = requestsData;
+                if (column) {
+                    const type = ['status_code', 'duration_ms'].includes(column) ? 'number' : column === 'created_at' ? 'date' : 'string';
+                    sorted = sortData(requestsData, column, direction, type);
+                }
+                el.innerHTML = `<table class="table-compact"><thead><tr>
+<th class="${getSortClass('requests', 'method')}" onclick="toggleSort('requests', 'method', 'string', renderRequests)">Method</th>
+<th class="${getSortClass('requests', 'path')}" onclick="toggleSort('requests', 'path', 'string', renderRequests)">Path</th>
+<th class="${getSortClass('requests', 'status_code')}" onclick="toggleSort('requests', 'status_code', 'number', renderRequests)">Status</th>
+<th class="${getSortClass('requests', 'duration_ms')}" onclick="toggleSort('requests', 'duration_ms', 'number', renderRequests)">Duration</th>
+<th class="${getSortClass('requests', 'created_at')}" onclick="toggleSort('requests', 'created_at', 'date', renderRequests)">Time</th>
+</tr></thead><tbody>
+${sorted.map(r => `<tr><td>${escapeHtml(r.method)}</td><td>${escapeHtml(r.path)}</td>
+<td><span class="badge badge-${r.status_code < 400 ? 'safe' : 'blocked'}">${r.status_code}</span></td>
+<td>${r.duration_ms}ms</td><td>${r.created_at}</td></tr>`).join('')}</tbody></table>`;
+            }
+            const VALID_TABS = ['dashboard', 'metrics', 'packages', 'security', 'quarantine', 'audit', 'scans', 'requests', 'graph'];
+            function switchTab(name, updateHash = true) {
+                if (!VALID_TABS.includes(name)) name = 'dashboard';
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector(`.tab[onclick*="${name}"]`)?.classList.add('active');
+                document.getElementById(`tab-${name}`)?.classList.add('active');
+                if (updateHash && location.hash !== `#${name}`) {
+                    history.pushState(null, '', `#${name}`);
+                }
+                if (name === 'metrics') {
+                    startMetricsPolling();
+                } else {
+                    stopMetricsPolling();
+                }
+                if (name === 'audit') send('getAuditLogs');
+                if (name === 'scans') send('getScanHistory');
+                if (name === 'requests') send('getRequestLogs');
+                if (name === 'security') loadAllowlist();
+                if (name === 'graph') initGraph();
+            }
+            function handleHashChange() {
+                const hash = location.hash.slice(1) || 'dashboard';
+                switchTab(hash, false);
+            }
+            let allowlistData = [];
+            function sortAllowlistBy(column) {
+                const current = sortState.allowlist;
+                if (current.column === column) {
+                    current.direction = current.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    current.column = column;
+                    current.direction = 'asc';
+                }
+                renderAllowlistTable();
+            }
+            function renderAllowlistTable() {
+                const tbody = document.getElementById('allowlist-entries');
+                if (!allowlistData.length) {
+                    tbody.innerHTML = '<tr><td colspan="5">' + emptyState('/assets/empty_security.webp', 'No IP rules configured', 'Add patterns to control access') + '</td></tr>';
+                    return;
+                }
+                const { column, direction } = sortState.allowlist;
+                let sorted = [...allowlistData];
+                if (column) {
+                    sorted.sort((a, b) => {
+                        let valA = a[column];
+                        let valB = b[column];
+                        if (column === 'created_at') {
+                            valA = new Date(valA).getTime();
+                            valB = new Date(valB).getTime();
+                        } else if (column === 'enabled') {
+                            valA = valA ? 1 : 0;
+                            valB = valB ? 1 : 0;
+                        } else {
+                            valA = String(valA || '').toLowerCase();
+                            valB = String(valB || '').toLowerCase();
+                        }
+                        if (valA < valB) return direction === 'asc' ? -1 : 1;
+                        if (valA > valB) return direction === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+                }
+                document.querySelectorAll('#tab-security th.sortable').forEach(th => {
+                    const col = th.getAttribute('onclick')?.match(/sortAllowlistBy\('([^']+)'\)/)?.[1];
+                    th.className = col ? getSortClass('allowlist', col) : 'sortable';
+                });
+                tbody.innerHTML = sorted.map(e => `
+<tr>
+<td><code style="background:var(--bg-secondary);padding:0.25rem 0.5rem;border-radius:4px;">${escapeHtml(e.pattern)}</code></td>
+<td>${escapeHtml(e.description) || '<span style="color:var(--text-secondary);">—</span>'}</td>
+<td>${new Date(e.created_at).toLocaleDateString()}</td>
+<td>
+<span class="badge ${e.enabled ? 'badge-success' : 'badge-warning'}">${e.enabled ? 'Active' : 'Disabled'}</span>
+</td>
+<td>
+<button class="btn btn-small" onclick="toggleIPEntryStatus(${e.id}, ${!e.enabled})">${e.enabled ? '⏸️' : '▶️'}</button>
+<button class="btn btn-danger btn-small" onclick="removeIPEntryById(${e.id})">Remove</button>
+</td>
+</tr>
+`).join('');
+            }
+            async function loadAllowlist() {
+                try {
+                    send('getAllowlist');
+                } catch (err) {
+                    console.error('Failed to load allowlist:', err);
+                    showToast('Failed to load allowlist', 'error');
+                }
+            }
+            async function toggleAllowlist() {
+                const enabled = document.getElementById('allowlist-enabled').checked;
+                await updateAllowlistConfig({ enabled });
+            }
+            async function updateAllowlistConfig(updates = {}) {
+                const mode = document.getElementById('allowlist-mode').value;
+                const enabled = document.getElementById('allowlist-enabled').checked;
+                send('updateAllowlistConfig', { enabled, mode, ...updates });
+            }
+            async function addIPEntry() {
+                const pattern = document.getElementById('ip-pattern').value.trim();
+                const description = document.getElementById('ip-description').value.trim();
+                if (!pattern) {
+                    showToast('Please enter an IP pattern', 'error');
+                    return;
+                }
+                send('addAllowlistEntry', { pattern, description });
+            }
+            async function removeIPEntryById(id) {
+                if (!confirm('Remove this IP rule?')) return;
+                send('removeAllowlistEntry', { id });
+            }
+            async function toggleIPEntryStatus(id, enabled) {
+                send('toggleAllowlistEntry', { id, enabled });
+            }
+            async function testIPAccess() {
+                const ip = document.getElementById('test-ip').value.trim();
+                if (!ip) {
+                    showToast('Please enter an IP to test', 'error');
+                    return;
+                }
+                send('testIP', { ip });
+            }
+
+            // ===== Package Allowlist Functions =====
+            let pkgCategoryFilter = '';
+
+            function updatePkgCategoryFilter() {
+                const select = document.getElementById('pkg-category-filter');
+                const current = select.value;
+                select.innerHTML = '<option value="">All Categories</option>' +
+                    state.packageAllowlist.categories.map(c => `<option value="${c}"${c === current ? ' selected' : ''}>${c}</option>`).join('');
+                // Update stats
+                const total = state.packageAllowlist.entries.length;
+                const enabled = state.packageAllowlist.entries.filter(e => e.enabled).length;
+                document.getElementById('pkg-allowlist-stats').textContent = `${enabled}/${total} active`;
+            }
+
+            function filterPackageAllowlist() {
+                pkgCategoryFilter = document.getElementById('pkg-category-filter').value;
+                renderPackageAllowlistTable();
+            }
+
+            function renderPackageAllowlistTable() {
+                const tbody = document.getElementById('pkg-allowlist-entries');
+                let entries = state.packageAllowlist.entries;
+
+                // Apply category filter
+                if (pkgCategoryFilter) {
+                    entries = entries.filter(e => e.category === pkgCategoryFilter);
+                }
+
+                if (!entries.length) {
+                    tbody.innerHTML = '<tr><td colspan="5">' + emptyState('/assets/empty_security.webp', 'No packages', pkgCategoryFilter ? 'No packages in this category' : 'Add package patterns to skip security scanning') + '</td></tr>';
+                    return;
+                }
+
+                // Apply sorting
+                const { column, direction } = sortState.pkgAllowlist;
+                if (column) {
+                    entries = [...entries].sort((a, b) => {
+                        let valA = a[column];
+                        let valB = b[column];
+                        if (column === 'enabled') {
+                            valA = valA ? 1 : 0;
+                            valB = valB ? 1 : 0;
+                        } else {
+                            valA = String(valA || '').toLowerCase();
+                            valB = String(valB || '').toLowerCase();
+                        }
+                        if (valA < valB) return direction === 'asc' ? -1 : 1;
+                        if (valA > valB) return direction === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+                }
+
+                tbody.innerHTML = entries.map(e => {
+                    const isDefault = e.is_default;
+                    const categoryColor = {
+                        'observability': '#06b6d4',
+                        'build-tools': '#f59e0b',
+                        'testing': '#8b5cf6',
+                        'parsers': '#10b981',
+                        'cli': '#6366f1',
+                        'networking': '#ec4899',
+                        'verified': '#22c55e',
+                        'custom': '#94a3b8'
+                    }[e.category] || '#94a3b8';
+
+                    return `<tr>
+<td><code style="background:var(--bg-secondary);padding:0.25rem 0.5rem;border-radius:4px;">${escapeHtml(e.pattern)}</code>${isDefault ? ' <span style="color:var(--text-secondary);font-size:0.7rem;">default</span>' : ''}</td>
+<td>${escapeHtml(e.description) || '<span style="color:var(--text-secondary);">—</span>'}</td>
+<td><span style="display:inline-block;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.75rem;background:${categoryColor}22;color:${categoryColor};border:1px solid ${categoryColor}44;">${escapeHtml(e.category)}</span></td>
+<td><span class="badge ${e.enabled ? 'badge-success' : 'badge-warning'}">${e.enabled ? 'Active' : 'Disabled'}</span></td>
+<td>
+<button class="btn btn-small" onclick="togglePackageEntryStatus(${e.id}, ${!e.enabled})">${e.enabled ? '⏸️' : '▶️'}</button>
+${!isDefault ? `<button class="btn btn-danger btn-small" onclick="removePackageEntryById(${e.id})">Remove</button>` : ''}
+</td>
+</tr>`;
+                }).join('');
+            }
+
+            function sortPackageAllowlistBy(column) {
+                const current = sortState.pkgAllowlist;
+                if (current.column === column) {
+                    current.direction = current.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    current.column = column;
+                    current.direction = 'asc';
+                }
+                renderPackageAllowlistTable();
+            }
+
+            function togglePackageAllowlist() {
+                const enabled = document.getElementById('pkg-allowlist-enabled').checked;
+                send('updatePackageAllowlistConfig', { enabled });
+            }
+
+            function addPackageEntry() {
+                const pattern = document.getElementById('pkg-pattern').value.trim();
+                const description = document.getElementById('pkg-description').value.trim();
+                const category = document.getElementById('pkg-category').value;
+                if (!pattern) {
+                    showToast('Please enter a package pattern', 'error');
+                    return;
+                }
+                send('addPackageAllowlistEntry', { pattern, description, category });
+            }
+
+            function removePackageEntryById(id) {
+                if (!confirm('Remove this package from allowlist?')) return;
+                send('removePackageAllowlistEntry', { id });
+            }
+
+            function togglePackageEntryStatus(id, enabled) {
+                send('togglePackageAllowlistEntry', { id, enabled });
+            }
+
+            function loadPackageAllowlist() {
+                send('getPackageAllowlist');
+            }
+            // ===== End Package Allowlist Functions =====
+
+            function exportAuditLogs(format) {
+                const startDate = document.getElementById('audit-start-date').value;
+                const endDate = document.getElementById('audit-end-date').value;
+                const severity = document.getElementById('audit-severity-filter').value;
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (severity) params.append('severity', severity);
+                const url = `/-/admin/audit/export${format === 'csv' ? '/csv' : ''}?${params.toString()}`;
+                window.location.href = url;
+                showToast(`Downloading ${format.toUpperCase()} export...`, 'info');
+            }
+            function clearQuarantine() {
+                if (confirm('Clear all quarantined packages?')) {
+                    send('clearQuarantine');
+                }
+            }
+            function rescanQuarantine() {
+                if (confirm('Rescan all quarantined packages? Safe ones will be auto-approved.')) {
+                    showLoading('Rescanning packages...');
+                    send('rescanQuarantine');
+                }
+            }
+            function approveQuarantine(file) {
+                if (confirm(`Approve ${file}? This will move it to tarballs/`)) {
+                    send('approveQuarantine', { file });
+                }
+            }
+            function approveAllQuarantine() {
+                const count = state.quarantine.length;
+                if (!count) {
+                    alert('No packages in quarantine to approve.');
+                    return;
+                }
+                if (confirm(`Approve ALL ${count} quarantined packages? This will move them to tarballs/ (bypassing security scan).`)) {
+                    showLoading(`Approving ${count} packages...`);
+                    send('approveAllQuarantine');
+                }
+            }
+            function deleteQuarantine(file) {
+                if (confirm(`Delete ${file} permanently?`)) {
+                    send('deleteQuarantineFile', { file });
+                }
+            }
+            function toggleAutoAllow(enabled) {
+                send('setAutoAllowSetting', { enabled });
+            }
+            function updateAutoAllowToggle(enabled) {
+                const toggle = document.getElementById('auto-allow-toggle');
+                if (toggle) toggle.checked = enabled;
+            }
+            function showLoading(text) {
+                document.getElementById('loading-text').textContent = text || 'Loading...';
+                document.getElementById('loading').classList.add('active');
+            }
+            function hideLoading() {
+                document.getElementById('loading').classList.remove('active');
+            }
+            function showRescanModal(results) {
+                const el = document.getElementById('rescan-results');
+                if (!results.length) {
+                    el.innerHTML = '<p style="color:var(--text-secondary)">No packages were scanned.</p>';
+                } else {
+                    el.innerHTML = results.map(r => {
+                        const issues = r.issues || [];
+                        return `<div style="margin-bottom:1rem;padding:1rem;background:var(--bg-tertiary);border-radius:6px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<strong>${r.file}</strong>
+${r.safe ? badge('safe', 'Approved') : badge('blocked', 'Blocked')}
+</div>
+${!r.safe && r.issueDetails ? `<ul style="margin:0.5rem 0 0 1rem;font-size:0.875rem;color:var(--text-secondary)">
+${r.issueDetails.map(i => `<li><span class="badge badge-${i.severity === 'critical' ? 'blocked' : 'info'}">${i.severity}</span> ${i.description}</li>`).join('')}
+</ul>` : ''}
+</div>`;
+                    }).join('');
+                }
+                document.getElementById('rescan-modal').classList.add('active');
+            }
+            function closeRescanModal() {
+                document.getElementById('rescan-modal').classList.remove('active');
+            }
+            function deletePackage(name) {
+                if (confirm(`Delete ${name}?`)) {
+                    send('deletePackage', { name });
+                }
+            }
+            let graphState = {
+                nodes: [],
+                links: [],
+                expandedNodes: new Set(),
+                simulation: null,
+                svg: null,
+                g: null,
+                nodeElements: null,
+                linkElements: null
+            };
+            const colorScale = {
+                local: '#8b5cf6',
+                upstream: '#06b6d4',
+                unknown: '#555555'
+            };
+            let graphAllNodes = [];
+            function applyGraphFilter() {
+                const localOnly = document.getElementById('graph-local-only').checked;
+                const searchQuery = (document.getElementById('graph-search')?.value || '').toLowerCase().trim();
+
+                let filtered = graphAllNodes;
+
+                // Apply local-only filter
+                if (localOnly) {
+                    filtered = filtered.filter(n => n.group === 'local');
+                }
+
+                // Apply search filter to root packages only
+                if (searchQuery) {
+                    filtered = filtered.filter(n => n.id.toLowerCase().includes(searchQuery));
+                }
+
+                // Update stats
+                const statsEl = document.getElementById('graph-stats');
+                if (statsEl) {
+                    if (searchQuery || localOnly) {
+                        statsEl.textContent = `${filtered.length}/${graphAllNodes.length} packages`;
+                    } else {
+                        statsEl.textContent = `${graphAllNodes.length} packages`;
+                    }
+                }
+
+                renderGraphRoots(filtered);
+            }
+            let d3Loaded = false;
+            async function loadD3() {
+                if (d3Loaded || typeof d3 !== 'undefined') return Promise.resolve();
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = '/assets/d3.v7.min.js?v=2';
+                    script.onload = () => { d3Loaded = true; resolve(); };
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+            async function initGraph() {
+                const container = document.getElementById('graph-container');
+                container.innerHTML = '<div id="graph-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-secondary);">Loading D3.js...</div>';
+                try {
+                    await loadD3();
+                } catch (e) {
+                    container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--danger);">⚠️ Failed to load D3.js</div>';
+                    return;
+                }
+                container.innerHTML = '<div id="graph-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-secondary);">Loading graph...</div>';
+                graphState.nodes = [];
+                graphState.links = [];
+                graphState.expandedNodes.clear();
+                graphAllNodes = [];
+                send('getGraphRoots');
+            }
+            function renderGraphRoots(nodes) {
+                const container = document.getElementById('graph-container');
+                if (!nodes || nodes.length === 0) {
+                    container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%">' + emptyState('/assets/empty_packages.webp', 'No packages') + '</div>';
+                    return;
+                }
+                container.innerHTML = '';
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                graphState.svg = d3.select(container)
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height)
+                    .call(d3.zoom().scaleExtent([0.1, 4]).on('zoom', (e) => graphState.g.attr('transform', e.transform)));
+                graphState.g = graphState.svg.append('g');
+                graphState.svg.append('defs').append('marker')
+                    .attr('id', 'arrowhead')
+                    .attr('viewBox', '-0 -5 10 10')
+                    .attr('refX', 25)
+                    .attr('refY', 0)
+                    .attr('orient', 'auto')
+                    .attr('markerWidth', 6)
+                    .attr('markerHeight', 6)
+                    .append('path')
+                    .attr('d', 'M0,-5L10,0L0,5')
+                    .attr('fill', '#555');
+                graphState.nodes = nodes.map((n, i) => ({
+                    id: n.id,
+                    version: n.version,
+                    group: n.group,
+                    hasDeps: n.hasDeps,
+                    expanded: false,
+                    x: width / 2 + (Math.random() - 0.5) * 300,
+                    y: height / 2 + (Math.random() - 0.5) * 300
+                }));
+                graphState.simulation = d3.forceSimulation(graphState.nodes)
+                    .force('link', d3.forceLink(graphState.links).id(d => d.id).distance(80))
+                    .force('charge', d3.forceManyBody().strength(-200))
+                    .force('center', d3.forceCenter(width / 2, height / 2))
+                    .force('collision', d3.forceCollide().radius(35))
+                    .on('tick', ticked);
+                graphState.linkElements = graphState.g.append('g').attr('class', 'links');
+                graphState.nodeElements = graphState.g.append('g').attr('class', 'nodes');
+                const legend = graphState.svg.append('g').attr('transform', 'translate(20,20)');
+                legend.append('rect').attr('width', 160).attr('height', 70).attr('fill', 'rgba(0,0,0,0.5)').attr('rx', 8);
+                legend.append('circle').attr('cx', 15).attr('cy', 20).attr('r', 6).attr('fill', colorScale.local);
+                legend.append('text').attr('x', 28).attr('y', 24).text('Local').attr('fill', '#fff').attr('font-size', '12px');
+                legend.append('circle').attr('cx', 15).attr('cy', 42).attr('r', 6).attr('fill', colorScale.upstream);
+                legend.append('text').attr('x', 28).attr('y', 46).text('Upstream').attr('fill', '#fff').attr('font-size', '12px');
+                legend.append('text').attr('x', 10).attr('y', 62).text('Click node to expand').attr('fill', '#888').attr('font-size', '10px');
+                updateGraph();
+            }
+            function updateGraph() {
+                const linkData = graphState.linkElements.selectAll('line').data(graphState.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+                linkData.exit().remove();
+                linkData.enter()
+                    .append('line')
+                    .attr('stroke', '#555')
+                    .attr('stroke-opacity', 0.6)
+                    .attr('stroke-width', 1.5)
+                    .attr('marker-end', 'url(#arrowhead)');
+                const nodeData = graphState.nodeElements.selectAll('g.node').data(graphState.nodes, d => d.id);
+                nodeData.exit().remove();
+                const nodeEnter = nodeData.enter().append('g')
+                    .attr('class', 'node')
+                    .style('cursor', 'pointer')
+                    .call(d3.drag()
+                        .on('start', dragstarted)
+                        .on('drag', dragged)
+                        .on('end', dragended))
+                    .on('click', (event, d) => {
+                        event.stopPropagation();
+                        if (d.hasDeps && !d.expanded) {
+                            d.expanded = true;
+                            graphState.expandedNodes.add(d.id);
+                            send('getGraphNode', { name: d.id });
+                        }
+                    });
+                nodeEnter.append('circle')
+                    .attr('r', d => d.hasDeps ? 14 : 10)
+                    .attr('fill', d => colorScale[d.group] || colorScale.unknown)
+                    .attr('stroke', '#fff')
+                    .attr('stroke-width', 2);
+                nodeEnter.append('text')
+                    .text(d => d.id.length > 15 ? d.id.slice(0, 12) + '...' : d.id)
+                    .attr('x', 18)
+                    .attr('y', 4)
+                    .attr('fill', '#fff')
+                    .attr('font-size', '11px')
+                    .attr('font-weight', '500');
+                nodeEnter.append('title')
+                    .text(d => `${d.id}@${d.version}\nSource: ${d.group}\n${d.hasDeps ? (d.expanded ? '(expanded)' : 'Click to expand') : 'No deps'}`);
+                graphState.simulation.nodes(graphState.nodes);
+                graphState.simulation.force('link').links(graphState.links);
+                graphState.simulation.alpha(0.3).restart();
+            }
+            function expandGraphNode(parent, children) {
+                if (children.length === 0) {
+                    const parentNode = graphState.nodes.find(n => n.id === parent);
+                    if (parentNode) parentNode.hasDeps = false;
+                    return;
+                }
+                children.forEach(child => {
+                    if (!graphState.nodes.find(n => n.id === child.id)) {
+                        const parentNode = graphState.nodes.find(n => n.id === parent);
+                        graphState.nodes.push({
+                            id: child.id,
+                            version: child.version,
+                            group: child.group,
+                            hasDeps: child.hasDeps,
+                            expanded: false,
+                            x: parentNode ? parentNode.x + (Math.random() - 0.5) * 100 : 400,
+                            y: parentNode ? parentNode.y + (Math.random() - 0.5) * 100 : 300
+                        });
+                    }
+                    if (!graphState.links.find(l => (l.source.id || l.source) === parent && (l.target.id || l.target) === child.id)) {
+                        graphState.links.push({ source: parent, target: child.id });
+                    }
+                });
+                updateGraph();
+            }
+            function ticked() {
+                graphState.linkElements.selectAll('line')
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                graphState.nodeElements.selectAll('g.node')
+                    .attr('transform', d => `translate(${d.x},${d.y})`);
+            }
+            function dragstarted(event, d) {
+                if (!event.active) graphState.simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+            function dragended(event, d) {
+                if (!event.active) graphState.simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+            function formatUptime(seconds) {
+                if (!seconds) return '--';
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = seconds % 60;
+                return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${s}s` : `${s}s`;
+            }
+            function formatMemory(bytes) {
+                if (!bytes) return '--';
+                return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+            }
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                toast.style.display = 'block';
+                setTimeout(() => toast.style.display = 'none', 3000);
+            }
+            document.addEventListener('DOMContentLoaded', () => {
+                connect();
+                const initialTab = location.hash.slice(1) || 'dashboard';
+                if (initialTab !== 'dashboard') {
+                    setTimeout(() => switchTab(initialTab, false), 100);
+                }
+                window.addEventListener('hashchange', handleHashChange);
+                setInterval(() => {
+                    if (ws?.readyState === WebSocket.OPEN) {
+                        send('getStats');
+                    }
+                }, 30000);
+            });</script>
+</body>
+
+</html>
