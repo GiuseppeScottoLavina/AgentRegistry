@@ -49,7 +49,7 @@ agentregistry/
 │   │   └── validation.ts  # Input validation
 │   └── web/
 │       └── admin.html     # Admin panel (single file)
-├── tests/                 # 631 tests across 26 files
+├── tests/                 # 656 tests across 26 files
 ├── docs/                  # Documentation website
 ├── storage/               # Runtime data (gitignored)
 └── scripts/               # Installation scripts

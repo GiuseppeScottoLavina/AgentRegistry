@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.1.0-orange?style=flat-square" alt="Version">
-  <img src="https://img.shields.io/badge/tests-631%2F631%20(100%25)-brightgreen?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/tests-656%2F656%20(100%25)-brightgreen?style=flat-square" alt="Tests">
   <img src="https://img.shields.io/badge/coverage-95%25%20lines-brightgreen?style=flat-square" alt="Coverage">
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/bun-%3E%3D1.0-black?style=flat-square&logo=bun" alt="Bun">
@@ -245,7 +245,7 @@ Packages are stored locally in:
 # First, start the server (required for tests)
 bun start
 
-# In another terminal, run all 631 tests (100% pass rate)
+# In another terminal, run all 656 tests (100% pass rate)
 bun test
 ```
 
@@ -275,7 +275,10 @@ bun test
 | CLI | 6 | ✅ |
 | Unit Tests | 4 | ✅ |
 | WebSocket Tests | 3 | ✅ |
-| **Total** | **631** | **100%** |
+| Dynamic Integration† | 25 | ✅ |
+| **Total** | **656** | **100%** |
+
+> †Dynamic tests generated at runtime (publish→verify roundtrips, WebSocket state checks)
 
 ## Automatic Maintenance
 
