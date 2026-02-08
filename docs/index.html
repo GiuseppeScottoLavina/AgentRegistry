@@ -85,8 +85,8 @@
     <div class="stats-grid">
         <div class="stat-card"
             style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05));">
-            <div class="stat-value" style="color: #a78bfa;">0</div>
-            <div class="stat-label">Dependencies</div>
+            <div class="stat-value" style="color: #a78bfa;">1</div>
+            <div class="stat-label">Dependency (tar)</div>
         </div>
         <div class="stat-card">
             <div class="stat-value">~1ms</div>
@@ -98,7 +98,7 @@
         </div>
         <div class="stat-card"
             style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.05));">
-            <div class="stat-value" style="color: #22c55e;">656/656</div>
+            <div class="stat-value" style="color: #22c55e;">751/751</div>
             <div class="stat-label">Tests Passing ✓</div>
         </div>
         <div class="stat-card">
@@ -123,12 +123,13 @@
             <div class="feature-card" style="border: 1px solid rgba(139, 92, 246, 0.3);">
                 <div class="feature-icon">📄</div>
                 <h3>llms.txt</h3>
-                <p>AI discovery protocol for automated tool detection. Your AI assistant finds AgentRegistry automatically.
+                <p>AI discovery protocol for automated tool detection. Your AI assistant finds AgentRegistry
+                    automatically.
                 </p>
             </div>
             <div class="feature-card" style="border: 1px solid rgba(139, 92, 246, 0.3);">
                 <div class="feature-icon">📋</div>
-                <h3>OpenAPI + agent.json</h3>
+                <h3>OpenAPI + Capabilities</h3>
                 <p>Full API documentation in AI-readable formats. Every endpoint documented for agents.</p>
             </div>
         </div>
@@ -136,7 +137,7 @@
         <div class="code-block" style="margin-top: 1.5rem; text-align: left;">
             <code><span class="comment"># AI agents discover and use AgentRegistry automatically</span>
 <span class="command">GET</span> <span class="string">/llms.txt</span>          <span class="comment"># AI discovery protocol</span>
-<span class="command">GET</span> <span class="string">/agent.json</span>       <span class="comment"># Agent capabilities</span>
+<span class="command">GET</span> <span class="string">/-/capabilities</span>   <span class="comment"># Agent tool definitions</span>
 <span class="command">GET</span> <span class="string">/openapi.json</span>     <span class="comment"># Full API spec</span>
 <span class="command">WS</span>  <span class="string">/-/admin/ws</span>        <span class="comment"># Real-time control</span></code>
         </div>
@@ -286,4 +287,3 @@
 </body>
 
 </html>
-

@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.1.0-orange?style=flat-square" alt="Version">
-  <img src="https://img.shields.io/badge/tests-656%2F656%20(100%25)-brightgreen?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/tests-751%2F751%20(100%25)-brightgreen?style=flat-square" alt="Tests">
   <img src="https://img.shields.io/badge/coverage-95%25%20lines-brightgreen?style=flat-square" alt="Coverage">
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/bun-%3E%3D1.0-black?style=flat-square&logo=bun" alt="Bun">
@@ -251,7 +251,7 @@ Packages are stored locally in:
 # First, start the server (required for tests)
 bun start
 
-# In another terminal, run all 727 tests
+# In another terminal, run all 751 tests
 bun test
 ```
 
@@ -261,13 +261,13 @@ bun test
 
 | Category | Tests | Status |
 |----------|-------|--------|
-| Server API | 72 | ✅ |
 | Prompt Injection Scanner | 154 | ✅ |
+| Server API | 72 | ✅ |
 | Database Module | 54 | ✅ |
 | IP Allowlist | 52 | ✅ |
 | Admin Panel | 48 | ✅ |
-| CVE Module | 39 | ✅ |
 | Security Module | 52 | ✅ |
+| CVE Module | 39 | ✅ |
 | Helpers & HTTP | 29 | ✅ |
 | Validation | 28 | ✅ |
 | Documentation Site | 26 | ✅ |
@@ -278,12 +278,14 @@ bun test
 | Upstream Module | 18 | ✅ |
 | Health Check | 16 | ✅ |
 | Daemon | 13 | ✅ |
+| Broadcast | 10 | ✅ |
+| WebSocket Tests | 10 | ✅ |
 | Compression | 9 | ✅ |
 | Logger | 9 | ✅ |
+| Allowlist | 8 | ✅ |
 | CLI | 6 | ✅ |
-| Unit Tests | 4 | ✅ |
-| WebSocket Tests | 3 | ✅ |
-| **Total** | **727** | **✅** |
+| Unit Tests | 3 | ✅ |
+| **Total** | **751** | **✅** |
 
 ## Automatic Maintenance
 
@@ -473,7 +475,7 @@ bun run start
 - ✅ **In-memory cache** (X-Cache: HIT-MEMORY/HIT-DISK)
 - ✅ **Localhost-only security hardening**
 - ✅ Single runtime dependency (`tar`)
-- ✅ ~11,600 lines of code (modular architecture)
+- ✅ ~12,300 lines of code (modular architecture)
 - ✅ **Developer Tools**: Scaffolding, Release Helper, Dependency Graph
 
 ## How It Works
