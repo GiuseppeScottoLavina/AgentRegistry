@@ -1,7 +1,7 @@
 # AgentRegistry - AI Agent Documentation
 
 <p align="center">
-  <img src="docs/assets/docs.jpg" alt="AgentRegistry Documentation" width="600">
+  <img src="docs/assets/docs.webp" alt="AgentRegistry Documentation" width="600">
 </p>
 
 > **Minimal local NPM registry server for agent-to-agent package sharing.**
