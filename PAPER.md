@@ -112,7 +112,7 @@ npm install lodash
          ▼
 ┌─────────────────┐
 │ Security Scan   │──FAIL──▶ 403 Forbidden
-│   (~10ms)       │          (stay in quarantine)
+│   (~10-50ms)     │          (stay in quarantine)
 └────────┬────────┘
          │ PASS
          ▼
@@ -147,7 +147,7 @@ npm publish
          ▼
 ┌─────────────────┐
 │ Security Scan   │──FAIL──▶ 403 + Agent Instructions
-│   (~10ms)       │
+│   (~10-50ms)     │
 └────────┬────────┘
          │ PASS
          ▼
@@ -445,7 +445,7 @@ SIGINT/SIGTERM handlers ensure:
 AgentRegistry demonstrates that a minimal, security-first npm registry can provide:
 
 1. **Superior security** — Real-time static analysis catches threats that CVE databases miss
-2. **Exceptional performance** — Sub-millisecond cached responses, ~10ms security scans
+2. **Exceptional performance** — Sub-millisecond cached responses, ~10-50ms security scans
 3. **Agent compatibility** — Structured errors guide AI agents to request human intervention
 4. **Zero maintenance** — Automatic cleanup, quarantine management, and graceful recovery
 

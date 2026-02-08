@@ -46,7 +46,7 @@ AgentRegistry includes several built-in security features:
 
 - **Localhost Binding**: Server binds to `127.0.0.1` only
 - **Host Header Validation**: Rejects non-localhost requests
-- **Security Scanner**: Static analysis of all packages (~10ms)
+- **Security Scanner**: Static analysis of all packages (~10-50ms)
 - **Quarantine Flow**: Upstream packages are scanned before caching
 - **Input Validation**: Strict regex for package names and versions
 - **Path Traversal Protection**: Blocks `../` and null bytes

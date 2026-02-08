@@ -133,7 +133,7 @@
                         </tr>
                         <tr>
                             <td><strong>Security Scanner</strong></td>
-                            <td>Static analysis before caching (~10ms)</td>
+                            <td>Static analysis before caching (~10-50ms)</td>
                         </tr>
                         <tr>
                             <td><strong>Quarantine</strong></td>
@@ -153,7 +153,7 @@
        ↓
 🔒 Write to storage/quarantine/
        ↓
-🔍 Security scan (~10ms)
+🔍 Security scan (~10-50ms)
        ↓
 ✅ SAFE → Move to storage/tarballs/ + cache
 🚨 BLOCKED → Stays in quarantine, returns 403</code></div>
@@ -380,7 +380,7 @@
                 <h3>Performance</h3>
                 <p>The security scanner is optimized for speed:</p>
                 <ul>
-                    <li>Average scan time: <strong>~10ms</strong> (all 10 passes)</li>
+                    <li>Average scan time: <strong>~10-50ms</strong> depending on package size (all 10 passes)</li>
                     <li>Scans all JavaScript files in the tarball</li>
                     <li>Uses streaming extraction to minimize memory</li>
                 </ul>

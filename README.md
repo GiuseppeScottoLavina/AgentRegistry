@@ -320,7 +320,7 @@ When a package is blocked by security scan, AgentRegistry returns detailed JSON 
 | **Path Traversal** | Blocks `../`, null bytes, enforces `basename()` checks |
 | **XSS Protection** | Output encoding via `escapeHtml()` on all render paths |
 | **Length Limits** | Package names max 214 chars |
-| **Security Scanner** | Static analysis before caching (~10ms) |
+| **Security Scanner** | Static analysis before caching (~10-50ms) |
 | **Quarantine** | All upstream packages scanned before cache |
 
 ### Quarantine Flow
@@ -334,7 +334,7 @@ npm install lodash
        ↓
 🔒 Write to storage/quarantine/
        ↓
-🔍 Security scan (~10ms)
+🔍 Security scan (~10-50ms)
        ↓
 ✅ SAFE → Move to storage/tarballs/ + memory cache
 🚨 BLOCKED → Stays in quarantine, returns 403
@@ -470,7 +470,7 @@ bun run start
 - ✅ Version-specific fetching
 - ✅ CORS enabled for browser access
 - ✅ **Upstream proxy to npmjs.org** (auto-cache)
-- ✅ **Real-time security scanning** (~10ms per package)
+- ✅ **Real-time security scanning** (~10-50ms per package)
 - ✅ **Quarantine flow** for upstream packages
 - ✅ **In-memory cache** (X-Cache: HIT-MEMORY/HIT-DISK)
 - ✅ **Localhost-only security hardening**
@@ -491,7 +491,7 @@ bun run start
 |-----------|------|
 | Memory cache hit | ~1ms |
 | Disk cache hit | ~3ms |
-| Upstream fetch + scan | ~500ms (network) + ~10ms (scan) |
+| Upstream fetch + scan | ~500ms (network) + ~10-50ms (scan) |
 
 Memory cache stores up to 100 tarballs for instant serving.
 
