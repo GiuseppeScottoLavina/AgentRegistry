@@ -355,8 +355,13 @@ export async function scanTarball(tarballPath: string): Promise<ScanResult> {
                     const isJs = [".js", ".mjs", ".cjs", ".ts", ".jsx", ".tsx"].some(e => ext.endsWith(e));
                     const isJson = ext.endsWith(".json");
                     const isTextDoc = [".md", ".txt", ".rst"].some(e => ext.endsWith(e));
+                    // Gap 4: Extended file types for prompt injection scanning
+                    const isConfig = [".yml", ".yaml", ".toml", ".ini"].some(e => ext.endsWith(e));
+                    const isMarkup = [".svg", ".html", ".htm"].some(e => ext.endsWith(e));
+                    const isKnownExtensionless = ["LICENSE", "README", "CHANGELOG", "NOTICE", "AUTHORS", "CONTRIBUTORS"]
+                        .includes(entry.name.toUpperCase());
 
-                    if (!isJs && !isJson && !isTextDoc) continue;
+                    if (!isJs && !isJson && !isTextDoc && !isConfig && !isMarkup && !isKnownExtensionless) continue;
 
                     try {
                         const info = await stat(fullPath);
@@ -374,10 +379,15 @@ export async function scanTarball(tarballPath: string): Promise<ScanResult> {
                             allIssues.push(...scanCode(content, entry.name));
                         }
 
-                        // Scan text documents and code for prompt injection
-                        if (isTextDoc || isJs) {
+                        // Scan text documents, code, configs, markup, and extensionless files for prompt injection
+                        if (isTextDoc || isJs || isConfig || isMarkup || isKnownExtensionless) {
                             const injections = scanForPromptInjection(content, entry.name);
                             allPromptInjections.push(...injections);
+                        }
+
+                        // SVG files can contain embedded script tags
+                        if (isMarkup) {
+                            allIssues.push(...scanCode(content, entry.name));
                         }
                     } catch {
                         // Skip files that can't be read

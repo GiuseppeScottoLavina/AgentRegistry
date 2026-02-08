@@ -51,6 +51,166 @@ interface InjectionPattern {
     name: string;
 }
 
+export interface InvisibleCharDetection {
+    found: boolean;
+    types: string[];
+    count: number;
+}
+
+// ============================================================================
+// Text Normalization Pipeline
+// Pre-processes text to neutralize evasion techniques before pattern matching.
+// Runs on every scanned file. Patterns match on normalized text.
+// ============================================================================
+
+// --- Gap 1: Invisible / Zero-Width Character Detection & Removal ---
+
+// Zero-width characters that can break up words to evade regex
+const ZERO_WIDTH_CHARS = /[\u200B\u200C\u200D\u2060\uFEFF\u00AD\u200E\u200F\u034F\u061C\u115F\u1160\u17B4\u17B5\u180E]/g;
+
+// Unicode "tag" characters (U+E0001–U+E007F): completely invisible in all editors,
+// but LLMs decode them as ASCII. A README can visually say "safe" while its bytes
+// contain full injection payloads in tag-character encoding.
+const TAG_CHARS = /[\u{E0001}-\u{E007F}]/gu;
+
+// Bidirectional override characters — can make text appear reversed to humans
+// while LLMs read the logical order
+const BIDI_CHARS = /[\u202A-\u202E\u2066-\u2069]/g;
+
+// Combining diacritical marks (applied after NFKD decomposition)
+const COMBINING_MARKS = /[\u0300-\u036F\u0489\u20D0-\u20FF\uFE20-\uFE2F]/g;
+
+/**
+ * Detects invisible characters in content and returns metadata.
+ * Called separately from normalization to generate findings.
+ */
+export function detectInvisibleCharacters(content: string): InvisibleCharDetection {
+    const types: string[] = [];
+    let count = 0;
+
+    const zwMatches = content.match(ZERO_WIDTH_CHARS);
+    if (zwMatches) {
+        types.push("zero_width");
+        count += zwMatches.length;
+    }
+
+    const tagMatches = content.match(TAG_CHARS);
+    if (tagMatches) {
+        types.push("unicode_tag");
+        count += tagMatches.length;
+    }
+
+    const bidiMatches = content.match(BIDI_CHARS);
+    if (bidiMatches) {
+        types.push("bidi_override");
+        count += bidiMatches.length;
+    }
+
+    return { found: count > 0, types, count };
+}
+
+/**
+ * Strips invisible characters that can split words to evade regex.
+ */
+function stripInvisibleChars(content: string): string {
+    return content
+        .replace(ZERO_WIDTH_CHARS, "")
+        .replace(TAG_CHARS, "")
+        .replace(BIDI_CHARS, "");
+}
+
+// --- Gap 2: Encoding Evasion Decoding ---
+
+/** Decodes HTML entities: &#105; → 'i', &#x69; → 'i', &amp; → '&' */
+function decodeHtmlEntities(content: string): string {
+    const NAMED_ENTITIES: Record<string, string> = {
+        "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"',
+        "&apos;": "'", "&nbsp;": " "
+    };
+    return content
+        // Numeric decimal: &#105;
+        .replace(/&#(\d+);/g, (_, code) => {
+            const n = parseInt(code, 10);
+            return n >= 32 && n <= 126 ? String.fromCharCode(n) : "";
+        })
+        // Numeric hex: &#x69;
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+            const n = parseInt(hex, 16);
+            return n >= 32 && n <= 126 ? String.fromCharCode(n) : "";
+        })
+        // Named entities
+        .replace(/&(amp|lt|gt|quot|apos|nbsp);/gi, (match) => NAMED_ENTITIES[match.toLowerCase()] || match);
+}
+
+/** Decodes JS string escapes: \u0069 → 'i', \x69 → 'i' */
+function decodeJsEscapes(content: string): string {
+    return content
+        // Unicode escapes: \u0069
+        .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => {
+            const n = parseInt(hex, 16);
+            return n >= 32 && n <= 126 ? String.fromCharCode(n) : "";
+        })
+        // Hex escapes: \x69
+        .replace(/\\x([0-9a-fA-F]{2})/g, (_, hex) => {
+            const n = parseInt(hex, 16);
+            return n >= 32 && n <= 126 ? String.fromCharCode(n) : "";
+        });
+}
+
+/** Detects and decodes Base64-encoded strings embedded in text content */
+function decodeInlineBase64(content: string): string {
+    // Match standalone base64 strings (min 20 chars, valid charset, proper padding)
+    return content.replace(/(?<![A-Za-z0-9+/])([A-Za-z0-9+/]{20,}={0,2})(?![A-Za-z0-9+/=])/g, (_, b64) => {
+        try {
+            const decoded = Buffer.from(b64, "base64").toString("utf-8");
+            // Only replace if the decoded content is printable ASCII/UTF-8
+            if (/^[\x20-\x7E\s]+$/.test(decoded)) {
+                return `${_} ${decoded}`; // Append decoded so both are scanned
+            }
+        } catch { /* ignore decode errors */ }
+        return _;
+    });
+}
+
+/** ROT13 decode — checks if ROT13-decoded content contains known injection phrases */
+function rot13(str: string): string {
+    return str.replace(/[a-zA-Z]/g, c => {
+        const base = c <= 'Z' ? 65 : 97;
+        return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
+    });
+}
+
+// --- Gap 3: Whitespace / Formatting Normalization ---
+
+// Unicode whitespace characters beyond standard ASCII space/tab/newline
+const UNICODE_WHITESPACE = /[\u2000-\u200A\u205F\u3000]/g;
+
+/** Normalizes all forms of whitespace to standard ASCII */
+function normalizeWhitespace(content: string): string {
+    return content
+        .replace(UNICODE_WHITESPACE, " ")
+        .replace(/\r\n/g, "\n")
+        .replace(/ {2,}/g, " ");
+}
+
+/**
+ * Master normalization pipeline.
+ * Order matters: invisible chars first, then encoding, then whitespace.
+ */
+export function normalizeForScanning(content: string): string {
+    let normalized = content;
+    normalized = stripInvisibleChars(normalized);     // Gap 1
+    normalized = decodeHtmlEntities(normalized);      // Gap 2
+    normalized = decodeJsEscapes(normalized);         // Gap 2
+    normalized = decodeInlineBase64(normalized);      // Gap 2
+    normalized = normalizeWhitespace(normalized);     // Gap 3
+    // NFKD normalization: decomposes homoglyphs (Cyrillic о → Latin o, etc.)
+    normalized = normalized.normalize("NFKD");
+    // Remove combining marks left after NFKD decomposition
+    normalized = normalized.replace(COMBINING_MARKS, "");
+    return normalized;
+}
+
 // ============================================================================
 // Detection Patterns
 // Research-based patterns covering known prompt injection techniques
@@ -284,6 +444,150 @@ const INJECTION_PATTERNS: InjectionPattern[] = [
         severity: "medium",
         name: "security_test_claim"
     },
+
+    // =========================================================================
+    // CRITICAL: 2025-2026 LLM Delimiters (Gap 7)
+    // Claude, Gemini, GPT-4o, Mistral, Command R, DeepSeek
+    // =========================================================================
+    {
+        pattern: /<\/?(?:human|assistant|admin)>/gi,
+        severity: "critical",
+        name: "claude_delimiter"
+    },
+    {
+        pattern: /<\|?(?:start_of_turn|end_of_turn)\|?>/gi,
+        severity: "critical",
+        name: "gemini_delimiter"
+    },
+    {
+        pattern: /<\|begin_of_text\|>|<\|start_header_id\|>|<\|end_header_id\|>/gi,
+        severity: "critical",
+        name: "gpt4o_delimiter"
+    },
+    {
+        pattern: /\[AVAILABLE_TOOLS\]|\[\/AVAILABLE_TOOLS\]/gi,
+        severity: "critical",
+        name: "mistral_tools_delimiter"
+    },
+    {
+        pattern: /<\|START_OF_TURN_TOKEN\|>|<\|END_OF_TURN_TOKEN\|>/gi,
+        severity: "critical",
+        name: "command_r_delimiter"
+    },
+    {
+        pattern: /<[｜|]?(?:begin|end)[▁_]of[▁_]sentence[｜|]?>/gi,
+        severity: "critical",
+        name: "deepseek_delimiter"
+    },
+    {
+        pattern: /\[SYSTEM\]|\[\/SYSTEM\]|\[TOOLS\]|\[\/TOOLS\]/g,
+        severity: "critical",
+        name: "generic_bracket_delimiter"
+    },
+    {
+        pattern: /<\|(?:tool_call|tool_result|function_call|function_response)\|>/gi,
+        severity: "critical",
+        name: "tool_call_delimiter"
+    },
+
+    // =========================================================================
+    // HIGH: Agent-specific social engineering (Gap 8)
+    // Patterns targeting agentic AI workflows
+    // =========================================================================
+    {
+        pattern: /\b(?:DAN|DUDE)\s+(?:mode|prompt)\b|developer\s+mode\s+(enabled|activated|on)/gi,
+        severity: "high",
+        name: "jailbreak_preamble"
+    },
+    {
+        pattern: /\bunrestricted\s+mode\b|\bno\s+(?:filter|restriction|limit)s?\s+mode\b/gi,
+        severity: "high",
+        name: "unrestricted_mode"
+    },
+    {
+        pattern: /\bwhen\s+you\s+(?:run|execute|install|call)\b.*\balso\s+(?:execute|run|do|perform)\b/gi,
+        severity: "high",
+        name: "tool_use_manipulation"
+    },
+    {
+        pattern: /\bprevious\s+(?:analysis|review|audit|scan)\s+(?:concluded|confirmed|determined|showed)\s+(?:this|it)\s+is\s+safe/gi,
+        severity: "high",
+        name: "context_poisoning"
+    },
+    {
+        pattern: /\b(?:security\s+)?(?:audit|review)\s+(?:approved|signed\s+off)\s+by\b/gi,
+        severity: "high",
+        name: "authority_impersonation"
+    },
+    {
+        pattern: /\bdeploy\s+(?:immediately|now|asap)\s+without\s+(?:review|testing|approval)/gi,
+        severity: "high",
+        name: "urgency_bypass"
+    },
+    {
+        pattern: /\byou\s+already\s+(?:approved|verified|confirmed|accepted)\s+this/gi,
+        severity: "high",
+        name: "gaslighting"
+    },
+    {
+        pattern: /\b(?:5\s+stars?|reward|bonus|tip)\s+if\s+you\s+(?:skip|ignore|bypass)/gi,
+        severity: "high",
+        name: "reward_hacking"
+    },
+    {
+        pattern: /\bskip\s+(?:security|safety|validation)\s+(?:check|scan|review)/gi,
+        severity: "high",
+        name: "security_skip_request"
+    },
+    {
+        pattern: /\btrust\s+(?:this|me|it)\s+(?:blindly|completely|without\s+(?:question|verification))/gi,
+        severity: "high",
+        name: "trust_manipulation"
+    },
+
+    // =========================================================================
+    // HIGH: Hidden content via CSS/HTML (Gap 3)
+    // =========================================================================
+    {
+        // Require HTML context: style="...display:none..."  not just bare CSS mention
+        pattern: /style\s*=\s*["'][^"']*(?:display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0|font-size\s*:\s*0)/gi,
+        severity: "high",
+        name: "css_hidden_content"
+    },
+    {
+        pattern: /style\s*=\s*["'][^"']*color\s*:\s*(?:white|transparent|#fff(?:fff)?|rgba?\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*0\s*\))/gi,
+        severity: "medium",
+        name: "css_invisible_text"
+    },
+];
+
+// ============================================================================
+// Payload Reconstruction Patterns (Gap 5)
+// Detect code that reconstructs injection phrases at runtime
+// ============================================================================
+
+const RECONSTRUCTION_PATTERNS: InjectionPattern[] = [
+    {
+        pattern: /String\.fromCharCode\s*\(\s*\d+(?:\s*,\s*\d+){5,}\s*\)/gi,
+        severity: "high",
+        name: "string_from_charcode"
+    },
+    {
+        pattern: /\.split\s*\(\s*(['"`])\1\s*\)\s*\.reverse\s*\(\s*\)\s*\.join\s*\(/gi,
+        severity: "high",
+        name: "reverse_join_reconstruction"
+    },
+    {
+        // Match arrays with 4+ string elements joined into one string
+        pattern: /\[(?:\s*(['"`])[^'"`\n]{1,20}\1\s*,){3,}\s*(['"`])[^'"`\n]{1,20}\2\s*\]\s*\.join\s*\(/gi,
+        severity: "medium",
+        name: "array_join_reconstruction"
+    },
+    {
+        pattern: /String\.raw\s*`[^`]{50,}`/gi,
+        severity: "medium",
+        name: "string_raw_payload"
+    },
 ];
 
 // ============================================================================
@@ -327,30 +631,22 @@ const INSTALL_SCRIPT_PATTERNS: InstallScriptPattern[] = [
 // Scanner Functions
 // ============================================================================
 
-/**
- * Scans text content for prompt injection patterns
- * @param content - The text content to scan
- * @param filename - The source filename for reporting
- * @returns Array of detected injection matches
- */
-export function scanForPromptInjection(
+/** Internal helper: run a set of patterns against content and collect matches */
+function runPatterns(
+    patterns: InjectionPattern[],
     content: string,
-    filename: string
+    filename: string,
+    suffixTag?: string
 ): PromptInjectionMatch[] {
     const matches: PromptInjectionMatch[] = [];
-    const lines = content.split("\n");
 
-    for (const rule of INJECTION_PATTERNS) {
-        // Reset regex state
+    for (const rule of patterns) {
         rule.pattern.lastIndex = 0;
-
         let match;
         while ((match = rule.pattern.exec(content)) !== null) {
-            // Find line number
             const beforeMatch = content.slice(0, match.index);
             const lineNum = beforeMatch.split("\n").length;
 
-            // Extract context (surrounding text, max 100 chars each side)
             const contextStart = Math.max(0, match.index - 50);
             const contextEnd = Math.min(content.length, match.index + match[0].length + 50);
             const context = content.slice(contextStart, contextEnd)
@@ -361,7 +657,7 @@ export function scanForPromptInjection(
                 file: filename,
                 line: lineNum,
                 severity: rule.severity,
-                pattern: rule.name,
+                pattern: suffixTag ? `${rule.name}:${suffixTag}` : rule.name,
                 matched: match[0],
                 context: context.length > 120 ? context.slice(0, 117) + "..." : context
             });
@@ -372,7 +668,98 @@ export function scanForPromptInjection(
 }
 
 /**
- * Scans package.json metadata fields for prompt injection
+ * Scans text content for prompt injection patterns.
+ * Runs a multi-pass analysis:
+ *   1. Raw content (catches literal patterns)
+ *   2. Normalized content (catches evasion via encoding/invisible chars)
+ *   3. ROT13-decoded content (catches ROT13-encoded injections)
+ *   4. Reconstruction patterns (catches code-based payload assembly)
+ *   5. Invisible character detection (flags suspicious Unicode)
+ *
+ * @param content - The text content to scan
+ * @param filename - The source filename for reporting
+ * @returns Array of detected injection matches
+ */
+export function scanForPromptInjection(
+    content: string,
+    filename: string
+): PromptInjectionMatch[] {
+    const matches: PromptInjectionMatch[] = [];
+
+    // Pass 1: Scan raw content
+    matches.push(...runPatterns(INJECTION_PATTERNS, content, filename));
+
+    // Pass 2: Normalize and scan again (catches encoding/invisible evasion)
+    const normalized = normalizeForScanning(content);
+    if (normalized !== content) {
+        matches.push(...runPatterns(INJECTION_PATTERNS, normalized, filename, "normalized"));
+    }
+
+    // Pass 3: ROT13-decode and scan (catches ROT13-encoded injections)
+    const rot13Content = rot13(content);
+    const rot13Matches = runPatterns(INJECTION_PATTERNS, rot13Content, filename, "rot13");
+    if (rot13Matches.length > 0) {
+        matches.push(...rot13Matches);
+    }
+
+    // Pass 4: Scan for reconstruction patterns (code-based evasion)
+    matches.push(...runPatterns(RECONSTRUCTION_PATTERNS, content, filename));
+
+    // Pass 5: Flag invisible characters as standalone findings
+    const invisibles = detectInvisibleCharacters(content);
+    if (invisibles.found) {
+        const severity = invisibles.types.includes("unicode_tag") ? "critical" as const :
+            invisibles.types.includes("bidi_override") ? "high" as const : "medium" as const;
+        matches.push({
+            file: filename,
+            line: 1,
+            severity,
+            pattern: "invisible_characters",
+            matched: `${invisibles.count} invisible chars (${invisibles.types.join(", ")})`,
+            context: `Found ${invisibles.count} invisible Unicode characters: ${invisibles.types.join(", ")}`
+        });
+    }
+
+    return matches;
+}
+
+/**
+ * Recursively extracts all string values from a JSON object.
+ * Returns array of {key, value} pairs with dot-notation paths.
+ */
+function extractAllStrings(
+    obj: unknown,
+    prefix: string = "",
+    depth: number = 0
+): Array<{ key: string; value: string }> {
+    if (depth > 5) return []; // Prevent infinite recursion
+    const results: Array<{ key: string; value: string }> = [];
+
+    if (typeof obj === "string" && obj.length > 0) {
+        results.push({ key: prefix || "root", value: obj });
+    } else if (Array.isArray(obj)) {
+        for (let i = 0; i < obj.length; i++) {
+            results.push(...extractAllStrings(obj[i], `${prefix}[${i}]`, depth + 1));
+        }
+    } else if (obj && typeof obj === "object") {
+        for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+            // Skip scanning script content (handled by scanInstallScripts)
+            if (prefix === "" && k === "scripts") continue;
+            // Skip binary/path fields unlikely to contain injections
+            if (k === "main" || k === "module" || k === "types" || k === "typings") continue;
+            results.push(...extractAllStrings(v, prefix ? `${prefix}.${k}` : k, depth + 1));
+        }
+    }
+
+    return results;
+}
+
+/**
+ * Scans package.json metadata fields for prompt injection.
+ * Now scans ALL string fields recursively (Gap 6), not just a hardcoded list.
+ * Covers: description, readme, keywords, author, homepage, bugs, repository,
+ * funding, contributors, config, and any custom fields.
+ *
  * @param pkgJson - Parsed package.json object
  * @returns Array of detected injection matches
  */
@@ -380,32 +767,16 @@ export function scanPackageJsonMetadata(
     pkgJson: Record<string, unknown>
 ): PromptInjectionMatch[] {
     const matches: PromptInjectionMatch[] = [];
+    const allStrings = extractAllStrings(pkgJson);
 
-    // Fields that agents commonly read
-    const fieldsToScan: Array<{ key: string; value: unknown }> = [
-        { key: "description", value: pkgJson.description },
-        { key: "readme", value: pkgJson.readme },
-        { key: "keywords", value: Array.isArray(pkgJson.keywords) ? pkgJson.keywords.join(" ") : null },
-        {
-            key: "author", value: typeof pkgJson.author === "string" ? pkgJson.author :
-                (typeof pkgJson.author === "object" && pkgJson.author !== null ?
-                    (pkgJson.author as { name?: string }).name : null)
-        },
-        { key: "homepage", value: pkgJson.homepage },
-        {
-            key: "bugs.url", value: typeof pkgJson.bugs === "object" && pkgJson.bugs !== null ?
-                (pkgJson.bugs as { url?: string }).url : null
-        },
-    ];
-
-    for (const field of fieldsToScan) {
-        if (typeof field.value === "string" && field.value.length > 0) {
-            const fieldMatches = scanForPromptInjection(
-                field.value,
-                `package.json:${field.key}`
-            );
-            matches.push(...fieldMatches);
-        }
+    for (const field of allStrings) {
+        // Only scan strings with meaningful length
+        if (field.value.length < 5) continue;
+        const fieldMatches = scanForPromptInjection(
+            field.value,
+            `package.json:${field.key}`
+        );
+        matches.push(...fieldMatches);
     }
 
     return matches;
