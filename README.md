@@ -14,6 +14,12 @@
 </p>
 
 <p align="center">
+  <a href="https://giuseppescottolavina.github.io/AgentRegistry/">📖 Documentation</a> ·
+  <a href="https://giuseppescottolavina.github.io/AgentRegistry/getting-started/">🚀 Getting Started</a> ·
+  <a href="https://giuseppescottolavina.github.io/AgentRegistry/api/">📡 API Reference</a>
+</p>
+
+<p align="center">
   <strong>A local NPM registry built for the age of AI coding agents.</strong><br>
   Lightweight. Security-first. Blazing fast.
 </p>
