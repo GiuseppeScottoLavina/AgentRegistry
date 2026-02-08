@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AgentRegistry Error Codes: Troubleshooting guide for common errors and their solutions.">
+    <title>Error Codes - AgentRegistry</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.webp">
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="http://localhost:4873/-/admin" class="logo">
+                <img src="../assets/logo_3d.webp" alt="AgentRegistry"
+                    style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 15px rgba(139,92,246,0.25);">
+                <span
+                    style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-0.02em;">
+                    Tiny<span
+                        style="background:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NPM</span>
+                </span>
+                <span style="font-weight:400;font-size:1.1rem;opacity:0.6;margin-left:0.25rem;">Docs</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="../">Home</a></li>
+                <li><a href="../getting-started/">Getting Started</a></li>
+                <li><a href="../admin-panel/">Admin Panel</a></li>
+                <li><a href="../api/">API</a></li>
+                <li><a href="../websocket-api/">WebSocket</a></li>
+                <li><a href="../security/">Security</a></li>
+                <li><a href="../errors/" class="active">Errors</a></li>
+                <li><a href="../examples/">Examples</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav" id="mobile-nav">
+        <ul>
+            <li><a href="../" onclick="closeMobileNav()">🏠 Home</a></li>
+            <li><a href="../getting-started/" onclick="closeMobileNav()">🚀 Getting Started</a></li>
+            <li><a href="../admin-panel/" onclick="closeMobileNav()">🎛️ Admin Panel</a></li>
+            <li><a href="../api/" onclick="closeMobileNav()">📡 API</a></li>
+            <li><a href="../websocket-api/" onclick="closeMobileNav()">🔌 WebSocket</a></li>
+            <li><a href="../security/" onclick="closeMobileNav()">🛡️ Security</a></li>
+            <li><a href="../errors/" class="active" onclick="closeMobileNav()">⚠️ Errors</a></li>
+            <li><a href="../examples/" onclick="closeMobileNav()">📋 Examples</a></li>
+        </ul>
+    </div>
+
+    <section class="hero" style="padding: 2rem 0; margin-top: 80px;">
+        <div class="hero-content">
+            <h1>⚠️ Error Codes</h1>
+            <p>Complete reference for all HTTP status codes and error responses.</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 class="section-title">HTTP Status Codes</h2>
+
+        <div class="error-section">
+            <h3>2xx Success</h3>
+            <table class="error-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Response</th>
+                        <th>When</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code class="success">200</code></td>
+                        <td>OK</td>
+                        <td>Package metadata retrieved, tarball downloaded, stats returned</td>
+                    </tr>
+                    <tr>
+                        <td><code class="success">201</code></td>
+                        <td>Created</td>
+                        <td>Package published successfully</td>
+                    </tr>
+                    <tr>
+                        <td><code class="success">204</code></td>
+                        <td>No Content</td>
+                        <td>OPTIONS preflight, successful deletion</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="error-section">
+            <h3>4xx Client Errors</h3>
+            <table class="error-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Error</th>
+                        <th>Cause</th>
+                        <th>Solution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code class="error">400</code></td>
+                        <td>Bad Request</td>
+                        <td>Invalid JSON, missing required fields, malformed tarball name</td>
+                        <td>Check request body format and required fields</td>
+                    </tr>
+                    <tr>
+                        <td><code class="error">401</code></td>
+                        <td>Unauthorized</td>
+                        <td>Missing or invalid admin token</td>
+                        <td>Use token from admin panel or X-Admin-Token header</td>
+                    </tr>
+                    <tr>
+                        <td><code class="error">403</code></td>
+                        <td>Forbidden</td>
+                        <td>Security scan blocked package, IP not allowed</td>
+                        <td>Check quarantine or allowlist settings</td>
+                    </tr>
+                    <tr>
+                        <td><code class="error">404</code></td>
+                        <td>Not Found</td>
+                        <td>Package doesn't exist locally or upstream</td>
+                        <td>Verify package name and version</td>
+                    </tr>
+                    <tr>
+                        <td><code class="error">409</code></td>
+                        <td>Conflict</td>
+                        <td>Version already exists</td>
+                        <td>Bump version before publishing again</td>
+                    </tr>
+                    <tr>
+                        <td><code class="error">429</code></td>
+                        <td>Too Many Requests</td>
+                        <td>Rate limit exceeded (1000 req/min)</td>
+                        <td>Wait and retry, or check for runaway scripts</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="error-section">
+            <h3>5xx Server Errors</h3>
+            <table class="error-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Error</th>
+                        <th>Cause</th>
+                        <th>Solution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code class="error">500</code></td>
+                        <td>Internal Server Error</td>
+                        <td>Invalid package name, path traversal attempt, server bug</td>
+                        <td>Check server logs, verify input validation</td>
+                    </tr>
+                    <tr>
+                        <td><code class="error">502</code></td>
+                        <td>Bad Gateway</td>
+                        <td>Upstream npmjs.org unreachable or returned error</td>
+                        <td>Check internet connection, retry later</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2 class="section-title">Error Response Format</h2>
+
+        <p>All errors return JSON with consistent structure:</p>
+        <div class="code-block"><code>{
+  "error": "Not Found",
+  "message": "Package 'my-package' does not exist"
+}</code></div>
+
+        <h3 style="margin-top: 2rem;">Security Block Response</h3>
+        <p>When a package is blocked by security scanning:</p>
+        <div class="code-block"><code>{
+  "error": "Package blocked by security scan",
+  "package": "suspicious-pkg@1.0.0",
+  "action_required": "HUMAN INTERVENTION REQUIRED",
+  "instructions": [
+    "The package has been quarantined for manual review",
+    "Open the admin panel to inspect the security issues",
+    "If safe, approve the package manually"
+  ],
+  "admin_url": "http://localhost:4873/-/admin",
+  "quarantine_path": "storage/quarantine/suspicious-pkg-1.0.0.tgz"
+}</code></div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2 class="section-title">WebSocket Errors</h2>
+
+        <table class="error-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Message</th>
+                    <th>Cause</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>error</code></td>
+                    <td><code>{ message: "Invalid action" }</code></td>
+                    <td>Unknown action type sent</td>
+                </tr>
+                <tr>
+                    <td><code>error</code></td>
+                    <td><code>{ message: "Missing parameter: X" }</code></td>
+                    <td>Required payload field missing</td>
+                </tr>
+                <tr>
+                    <td><code>error</code></td>
+                    <td><code>{ message: "Invalid IP pattern" }</code></td>
+                    <td>Malformed CIDR or wildcard pattern</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2 class="section-title">Common Issues</h2>
+
+        <div class="faq-item">
+            <h4>❓ "Cannot find package" but it exists on npm</h4>
+            <p>The package might be blocked in quarantine. Check Admin Panel → Quarantine tab.</p>
+        </div>
+
+        <div class="faq-item">
+            <h4>❓ "Rate limit exceeded" during tests</h4>
+            <p>Wait 60 seconds for the rate limit window to reset, or increase <code>RATE_LIMIT_MAX_REQUESTS</code> in
+                config.ts.</p>
+        </div>
+
+        <div class="faq-item">
+            <h4>❓ "EPERM: operation not permitted"</h4>
+            <p>File permission issue on macOS. <strong>Fix:</strong> Use <code>agentregistry publish</code> (resilient mode)
+                or run <code>agentregistry doctor</code> to diagnose.</p>
+        </div>
+
+        <div class="faq-item">
+            <h4>❓ WebSocket disconnects immediately</h4>
+            <p>Invalid or missing token. The token is auto-injected when accessing /-/admin directly.</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>
+            AgentRegistry is licensed under <a href="../LICENSE">Apache 2.0</a>.
+            Created by <strong>Giuseppe Scotto Lavina</strong>.
+        </p>
+    </footer>
+
+    <style>
+        .error-section {
+            margin-bottom: 2rem;
+        }
+
+        .error-section h3 {
+            margin-bottom: 1rem;
+        }
+
+        .error-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .error-table th,
+        .error-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .error-table th {
+            background: var(--surface);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .error-table code {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .error-table code.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .error-table code.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .faq-item {
+            background: var(--surface);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 3px solid #8b5cf6;
+        }
+
+        .faq-item h4 {
+            margin: 0 0 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .faq-item p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+    </style>
+    <script>
+        // Mobile Navigation Toggle
+        function toggleMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        }
+        function closeMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+
+</html>

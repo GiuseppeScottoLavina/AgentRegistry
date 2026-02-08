@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AgentRegistry HTTP API Reference: Endpoints for package management, publishing, and admin operations.">
+    <title>API Reference - AgentRegistry</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.webp">
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="http://localhost:4873/-/admin" class="logo">
+                <img src="../assets/logo_3d.webp" alt="AgentRegistry"
+                    style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 15px rgba(139,92,246,0.25);">
+                <span
+                    style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-0.02em;">
+                    Tiny<span style="background:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NPM</span>
+                </span>
+                <span style="font-weight:400;font-size:1.1rem;opacity:0.6;margin-left:0.25rem;">Docs</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="../">Home</a></li>
+                <li><a href="../getting-started/">Getting Started</a></li>
+                <li><a href="../admin-panel/">Admin Panel</a></li>
+                <li><a href="../api/" class="active">API</a></li>
+                <li><a href="../websocket-api/">WebSocket</a></li>
+                <li><a href="../security/">Security</a></li>
+                <li><a href="../errors/">Errors</a></li>
+                <li><a href="../examples/">Examples</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav" id="mobile-nav">
+        <ul>
+            <li><a href="../" onclick="closeMobileNav()">🏠 Home</a></li>
+            <li><a href="../getting-started/" onclick="closeMobileNav()">🚀 Getting Started</a></li>
+            <li><a href="../admin-panel/" onclick="closeMobileNav()">🎛️ Admin Panel</a></li>
+            <li><a href="../api/" onclick="closeMobileNav()">📡 API</a></li>
+            <li><a href="../websocket-api/" onclick="closeMobileNav()">🔌 WebSocket</a></li>
+            <li><a href="../security/" onclick="closeMobileNav()">🛡️ Security</a></li>
+            <li><a href="../errors/" onclick="closeMobileNav()">⚠️ Errors</a></li>
+            <li><a href="../examples/" onclick="closeMobileNav()">📋 Examples</a></li>
+        </ul>
+    </div>
+
+    <main class="docs-container">
+        <aside class="sidebar">
+            <h3>API Reference</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#registry">Registry Endpoints</a></li>
+                <li><a href="#admin">Admin Endpoints</a></li>
+                <li><a href="#websocket">WebSocket API</a></li>
+                <li><a href="#responses">Response Headers</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </aside>
+
+        <article class="content">
+            <h1>📡 API Reference</h1>
+            <p class="lead">Complete HTTP and WebSocket API documentation for AgentRegistry.</p>
+
+            <section id="overview">
+                <h2>Overview</h2>
+                <p>AgentRegistry provides a fully npm-compatible HTTP API for package management, plus admin APIs for registry
+                    control.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Base URL</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>http://localhost:4873</code></td>
+                            <td>Default server address</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="registry">
+                <h2>Registry Endpoints</h2>
+                <p>Standard npm registry protocol - compatible with npm, yarn, pnpm, and bun.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Endpoint</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/</code></td>
+                            <td>List all packages</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/-/ping</code></td>
+                            <td>Health check</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/{package}</code></td>
+                            <td>Get package metadata</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/{package}/{version}</code></td>
+                            <td>Get specific version</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/{package}/-/{tarball}.tgz</code></td>
+                            <td>Download tarball</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-warning">PUT</span></td>
+                            <td><code>/{package}</code></td>
+                            <td>Publish package</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-danger">DELETE</span></td>
+                            <td><code>/{package}/-/{tarball}/{rev}</code></td>
+                            <td>Unpublish version</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Scoped Packages</h3>
+                <p>Fully supported with the format <code>@scope/package-name</code>:</p>
+                <div class="code-block"><code>GET /@myorg/utils
+PUT /@myorg/utils</code></div>
+
+                <h3>Search</h3>
+                <div class="code-block"><code>GET /-/v1/search?text=lodash&size=20</code></div>
+                <p>Returns ranked results with local packages prioritized.</p>
+            </section>
+
+            <section id="admin">
+                <h2>Admin Endpoints</h2>
+
+                <div class="warning-box">
+                    <h4>🔐 Authentication Required</h4>
+                    <p>All admin API endpoints (except <code>/-/admin</code> UI) require the <code>X-Admin-Token</code>
+                        header. The token is auto-injected when using the Admin Panel.</p>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Endpoint</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/-/admin</code></td>
+                            <td>Admin panel UI</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/-/admin/stats</code></td>
+                            <td>Server stats</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/-/admin/quarantine</code></td>
+                            <td>List quarantine</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-danger">DELETE</span></td>
+                            <td><code>/-/admin/quarantine</code></td>
+                            <td>Clear quarantine</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-danger">DELETE</span></td>
+                            <td><code>/-/admin/quarantine/{file}</code></td>
+                            <td>Delete file</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-warning">POST</span></td>
+                            <td><code>/-/admin/quarantine/{file}/approve</code></td>
+                            <td>Approve file</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/-/admin/cache</code></td>
+                            <td>List cache</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-danger">DELETE</span></td>
+                            <td><code>/-/admin/cache/{name}</code></td>
+                            <td>Delete package</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-warning">POST</span></td>
+                            <td><code>/-/admin/cache/{name}/refresh</code></td>
+                            <td>Force refresh</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>IP Allowlist</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Endpoint</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/-/admin/allowlist</code></td>
+                            <td>Get config & entries</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-warning">PUT</span></td>
+                            <td><code>/-/admin/allowlist/config</code></td>
+                            <td>Update config</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-warning">POST</span></td>
+                            <td><code>/-/admin/allowlist/entry</code></td>
+                            <td>Add IP entry</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-danger">DELETE</span></td>
+                            <td><code>/-/admin/allowlist/entry/{id}</code></td>
+                            <td>Remove entry</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-warning">PUT</span></td>
+                            <td><code>/-/admin/allowlist/entry/{id}/toggle</code></td>
+                            <td>Enable/disable</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-success">GET</span></td>
+                            <td><code>/-/admin/allowlist/check/{ip}</code></td>
+                            <td>Test IP access</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="websocket">
+                <h2>WebSocket API</h2>
+                <p>Real-time communication for the Admin Panel.</p>
+
+                <div class="code-block"><code>ws://localhost:4873/-/admin/ws?token=SESSION_TOKEN</code></div>
+
+                <h3>Outgoing Messages (to server)</h3>
+                <div class="code-block"><code>{ "action": "getStats", "payload": {} }
+{ "action": "getQuarantine", "payload": {} }
+{ "action": "getCache", "payload": {} }
+{ "action": "deletePackage", "payload": { "name": "pkg" } }
+{ "action": "approveQuarantine", "payload": { "file": "pkg.tgz" } }
+{ "action": "getGraphRoots", "payload": {} }
+{ "action": "getGraphNode", "payload": { "name": "pkg" } }</code></div>
+
+                <h3>Incoming Messages (from server)</h3>
+                <div class="code-block"><code>{ "type": "connected" }
+{ "type": "stats", "data": { ... } }
+{ "type": "quarantine", "data": { "files": [...] } }
+{ "type": "cache", "data": { "packages": [...] } }
+{ "type": "graphRoots", "data": { "nodes": [...] } }
+{ "type": "error", "data": { "message": "..." } }</code></div>
+
+                <div class="tip-box">
+                    <h4>💡 Recommendation</h4>
+                    <p>Use WebSocket for all admin operations. It provides better performance and real-time updates
+                        compared to HTTP polling.</p>
+                </div>
+            </section>
+
+            <section id="responses">
+                <h2>Response Headers</h2>
+
+                <h3>Cache Headers</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Header</th>
+                            <th>Values</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>X-Cache</code></td>
+                            <td><code>HIT-MEMORY</code>, <code>HIT-DISK</code>, <code>MISS</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>X-Scan-Time</code></td>
+                            <td>Security scan duration (e.g., <code>8ms</code>)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Security Headers</h3>
+                <p>All responses include:</p>
+                <ul>
+                    <li><code>X-Content-Type-Options: nosniff</code></li>
+                    <li><code>X-Frame-Options: DENY</code></li>
+                    <li><code>Content-Security-Policy: ...</code></li>
+                </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            </section>
+
+        </article>
+    </main>
+
+    <footer class="footer-docs">
+        <p>AgentRegistry Documentation · <a href="../">Home</a> · <a href="../LICENSE">License</a></p>
+    </footer>
+<script>
+        // Mobile Navigation Toggle
+        function toggleMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        }
+        function closeMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+
+</html>

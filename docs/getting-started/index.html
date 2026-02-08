@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="Get started with AgentRegistry: Installation, configuration, and first package publish.">
+    <title>Getting Started - AgentRegistry</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.webp">
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="http://localhost:4873/-/admin" class="logo">
+                <img src="../assets/logo_3d.webp" alt="AgentRegistry"
+                    style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 15px rgba(139,92,246,0.25);">
+                <span
+                    style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-0.02em;">
+                    Tiny<span
+                        style="background:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NPM</span>
+                </span>
+                <span style="font-weight:400;font-size:1.1rem;opacity:0.6;margin-left:0.25rem;">Docs</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="../">Home</a></li>
+                <li><a href="../getting-started/" class="active">Getting Started</a></li>
+                <li><a href="../admin-panel/">Admin Panel</a></li>
+                <li><a href="../api/">API</a></li>
+                <li><a href="../websocket-api/">WebSocket</a></li>
+                <li><a href="../security/">Security</a></li>
+                <li><a href="../errors/">Errors</a></li>
+                <li><a href="../examples/">Examples</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav" id="mobile-nav">
+        <ul>
+            <li><a href="../" onclick="closeMobileNav()">🏠 Home</a></li>
+            <li><a href="../getting-started/" onclick="closeMobileNav()">🚀 Getting Started</a></li>
+            <li><a href="../admin-panel/" onclick="closeMobileNav()">🎛️ Admin Panel</a></li>
+            <li><a href="../api/" onclick="closeMobileNav()">📡 API</a></li>
+            <li><a href="../websocket-api/" onclick="closeMobileNav()">🔌 WebSocket</a></li>
+            <li><a href="../security/" onclick="closeMobileNav()">🛡️ Security</a></li>
+            <li><a href="../errors/" onclick="closeMobileNav()">⚠️ Errors</a></li>
+            <li><a href="../examples/" onclick="closeMobileNav()">📋 Examples</a></li>
+        </ul>
+    </div>
+
+    <main class="docs-container">
+        <aside class="sidebar">
+            <h3>Getting Started</h3>
+            <ul>
+                <li><a href="#prerequisites">Prerequisites</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#starting">Starting the Server</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#daemon">Daemon Mode</a></li>
+                <li><a href="#tools">Developer Tools</a></li>
+                <li><a href="#testing">Testing</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </aside>
+
+        <article class="content">
+            <h1>🚀 Getting Started</h1>
+            <p class="lead">Get AgentRegistry up and running in under 5 minutes.</p>
+
+            <section id="prerequisites">
+                <h2>Prerequisites</h2>
+                <ul>
+                    <li><strong>Bun</strong> >= 1.0 (recommended runtime)</li>
+                    <li>macOS, Linux, or WSL2</li>
+                    <li>Node.js >= 18 (alternative runtime)</li>
+                </ul>
+                <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="code-block"><code><span class="comment"># Install Bun if you haven't already</span>
+curl -fsSL https://bun.sh/install | bash</code></div>
+            </section>
+
+            <section id="installation">
+                <h2>Installation</h2>
+                <div class="code-block"><code><span class="comment"># Clone the repository</span>
+git clone https://github.com/GiuseppeScottoLavina/AgentRegistry.git
+cd agentregistry
+
+<span class="comment"># Install dependencies (minimal)</span>
+bun install</code></div>
+            </section>
+
+            <section id="starting">
+                <h2>Starting the Server</h2>
+
+                <h3>Quick Start</h3>
+                <div class="code-block"><code><span class="comment"># Start the server</span>
+bun run start
+
+<span class="comment"># Or with hot-reload for development</span>
+bun run dev
+
+<span class="comment"># Custom port</span>
+bun run src/server.ts --port 4874</code></div>
+
+                <p>The server will start on <code>http://localhost:4873</code> by default.</p>
+            </section>
+
+            <section id="configuration">
+                <h2>Client Configuration</h2>
+                <p>Point your npm/bun client to the local registry:</p>
+
+                <h3>NPM</h3>
+                <div class="code-block"><code>npm config set registry http://localhost:4873</code></div>
+
+                <h3>Bun</h3>
+                <div class="code-block"><code><span class="comment"># Add to bunfig.toml</span>
+echo 'registry = "http://localhost:4873"' >> bunfig.toml</code></div>
+
+                <h3>Per-Project (.npmrc)</h3>
+                <div class="code-block"><code>echo "registry=http://localhost:4873" > .npmrc</code></div>
+
+                <div class="tip-box">
+                    <h4>💡 Tip</h4>
+                    <p>Using per-project <code>.npmrc</code> is recommended for team projects to ensure everyone uses
+                        the same registry.</p>
+                </div>
+
+                <div class="warning-box"
+                    style="border-left: 4px solid #ff9500; background: rgba(255, 149, 0, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1.5rem;">
+                    <h4>⚠️ Bun Users - Important Workaround</h4>
+                    <p>Bun performs client-side auth validation before contacting the server. Add a dummy token:</p>
+                    <div class="code-block" style="margin: 0.5rem 0;">
+                        <code>echo "//localhost:4873/:_authToken=agentregistry-no-auth-needed" >> ~/.npmrc</code>
+                    </div>
+                    <p style="font-size: 0.9em; color: var(--text-secondary);">AgentRegistry ignores this token - it's only to
+                        bypass Bun's local check. Alternatively, use <code>npm publish</code> instead.</p>
+                </div>
+            </section>
+
+            <section id="daemon">
+                <h2>Daemon Mode</h2>
+                <p>Run AgentRegistry as a background service with automatic restart on crash.</p>
+
+                <h3>CLI Commands</h3>
+                <div class="code-block"><code><span class="comment"># Start daemon in background</span>
+bun run cli.ts start
+
+<span class="comment"># Check status</span>
+bun run cli.ts status
+
+<span class="comment"># View logs</span>
+bun run cli.ts logs
+
+<span class="comment"># Stop daemon</span>
+bun run cli.ts stop
+
+<span class="comment"># Restart</span>
+bun run cli.ts restart</code></div>
+
+                <h3>macOS Auto-Start (launchd)</h3>
+                <div class="code-block"><code><span class="comment"># Install as system service (auto-start on boot)</span>
+npm run install-service
+
+<span class="comment"># Remove service</span>
+npm run uninstall-service</code></div>
+
+                <h3>Daemon Files</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PID file</td>
+                            <td><code>~/.agentregistry/agentregistry.pid</code></td>
+                        </tr>
+                        <tr>
+                            <td>Logs</td>
+                            <td><code>~/.agentregistry/logs/agentregistry.log</code></td>
+                        </tr>
+                        <tr>
+                            <td>launchd plist</td>
+                            <td><code>~/Library/LaunchAgents/com.agentregistry.daemon.plist</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="tools">
+                <h2>Developer Tools</h2>
+
+                <h3>Scaffold New Packages</h3>
+                <p>Create a ready-to-publish TypeScript package:</p>
+                <div class="code-block"><code>agentregistry create my-pkg</code></div>
+
+                <h3>Release Helper</h3>
+                <p>Bump version and publish in one command:</p>
+                <div class="code-block"><code>agentregistry release patch
+<span class="comment"># or: minor, major</span></code></div>
+
+                <h3>Resilient Publish</h3>
+                <p>If you encounter <code>EPERM</code> errors due to corrupted local cache, use the resilient publish
+                    command:</p>
+                <div class="code-block"><code>agentregistry publish</code></div>
+
+                <h3>Diagnostics</h3>
+                <p>Check for environment issues (permissions, connectivity):</p>
+                <div class="code-block"><code>agentregistry doctor</code></div>
+
+                <h3>System Backup</h3>
+                <p>Create a full snapshot (database + storage):</p>
+                <div class="code-block"><code>agentregistry backup
+agentregistry restore &lt;file.zip&gt;</code></div>
+            </section>
+
+            <section id="testing">
+                <h2>Testing</h2>
+                <div class="code-block"><code><span class="comment"># Run all 468 tests (100% pass rate)</span>
+bun test</code></div>
+
+                <p>Tests include:</p>
+                <ul>
+                    <li>Security scanner validation</li>
+                    <li>Admin panel endpoints</li>
+                    <li>Column sorting functionality</li>
+                    <li>IP allowlist rules</li>
+                    <li>End-to-end registry operations</li>
+                </ul>
+                <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </section>
+
+        </article>
+    </main>
+
+    <footer class="footer-docs">
+        <p>AgentRegistry Documentation · <a href="../">Home</a> · <a href="../LICENSE">License</a></p>
+    </footer>
+    <script>
+        // Mobile Navigation Toggle
+        function toggleMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        }
+        function closeMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+
+</html>

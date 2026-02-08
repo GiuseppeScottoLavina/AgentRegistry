@@ -1,0 +1,17 @@
+{
+    "name": "@agentregistry/mcp-server",
+    "version": "0.1.0",
+    "description": "MCP (Model Context Protocol) server for AgentRegistry registry",
+    "type": "module",
+    "main": "index.ts",
+    "scripts": {
+        "start": "bun run index.ts",
+        "dev": "bun run --watch index.ts"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.0"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    }
+}

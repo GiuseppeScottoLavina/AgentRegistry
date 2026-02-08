@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AgentRegistry WebSocket API: Real-time protocol for admin panel, metrics, and security events.">
+    <title>WebSocket API - AgentRegistry</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.webp">
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="http://localhost:4873/-/admin" class="logo">
+                <img src="../assets/logo_3d.webp" alt="AgentRegistry"
+                    style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 15px rgba(139,92,246,0.25);">
+                <span
+                    style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-0.02em;">
+                    Tiny<span
+                        style="background:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NPM</span>
+                </span>
+                <span style="font-weight:400;font-size:1.1rem;opacity:0.6;margin-left:0.25rem;">Docs</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="../">Home</a></li>
+                <li><a href="../getting-started/">Getting Started</a></li>
+                <li><a href="../admin-panel/">Admin Panel</a></li>
+                <li><a href="../api/">API</a></li>
+                <li><a href="../websocket-api/" class="active">WebSocket</a></li>
+                <li><a href="../security/">Security</a></li>
+                <li><a href="../errors/">Errors</a></li>
+                <li><a href="../examples/">Examples</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav" id="mobile-nav">
+        <ul>
+            <li><a href="../" onclick="closeMobileNav()">🏠 Home</a></li>
+            <li><a href="../getting-started/" onclick="closeMobileNav()">🚀 Getting Started</a></li>
+            <li><a href="../admin-panel/" onclick="closeMobileNav()">🎛️ Admin Panel</a></li>
+            <li><a href="../api/" onclick="closeMobileNav()">📡 API</a></li>
+            <li><a href="../websocket-api/" onclick="closeMobileNav()">🔌 WebSocket</a></li>
+            <li><a href="../security/" onclick="closeMobileNav()">🛡️ Security</a></li>
+            <li><a href="../errors/" onclick="closeMobileNav()">⚠️ Errors</a></li>
+            <li><a href="../examples/" onclick="closeMobileNav()">📋 Examples</a></li>
+        </ul>
+    </div>
+
+    <section class="hero" style="padding: 2rem 0; margin-top: 80px;">
+        <div class="hero-content">
+            <h1>🔌 WebSocket API</h1>
+            <p>Real-time admin operations via WebSocket. The admin panel uses this API internally.</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Connection</h2>
+        <div class="code-block"><code><span class="comment">// Connect to WebSocket</span>
+const ws = new WebSocket('ws://localhost:4873/-/admin/ws?token=YOUR_TOKEN');
+
+<span class="comment">// Token is auto-injected in admin panel as:</span>
+<span class="comment">// window.ADMIN_SESSION_TOKEN</span></code></div>
+
+        <h2 style="margin-top: 2rem;">Message Format</h2>
+        <div class="code-block"><code><span class="comment">// Send</span>
+{ "action": "getStats", "payload": {} }
+
+<span class="comment">// Receive</span>
+{ "type": "stats", "data": {...}, "timestamp": 1706100000000 }</code></div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2 class="section-title">Operations Reference</h2>
+
+        <div class="api-section">
+            <h3>📊 Stats & Metrics</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Response Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>getStats</code></td>
+                        <td><code>stats</code></td>
+                        <td>Server stats: uptime, memory, packages, requests</td>
+                    </tr>
+                    <tr>
+                        <td><code>getQuarantine</code></td>
+                        <td><code>quarantine</code></td>
+                        <td>List packages in quarantine</td>
+                    </tr>
+                    <tr>
+                        <td><code>getCache</code></td>
+                        <td><code>cache</code></td>
+                        <td>List cached packages with metadata</td>
+                    </tr>
+                    <tr>
+                        <td><code>getPackages</code></td>
+                        <td><code>packages</code></td>
+                        <td>All local packages</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="api-section">
+            <h3>🛡️ IP Allowlist</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Payload</th>
+                        <th>Response Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>getAllowlist</code></td>
+                        <td><code>{}</code></td>
+                        <td><code>allowlist</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>updateAllowlistConfig</code></td>
+                        <td><code>{ enabled, mode }</code></td>
+                        <td><code>allowlistUpdated</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>addAllowlistEntry</code></td>
+                        <td><code>{ pattern, description }</code></td>
+                        <td><code>allowlistUpdated</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>removeAllowlistEntry</code></td>
+                        <td><code>{ id }</code></td>
+                        <td><code>allowlistUpdated</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>toggleAllowlistEntry</code></td>
+                        <td><code>{ id, enabled }</code></td>
+                        <td><code>allowlistUpdated</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>testIP</code></td>
+                        <td><code>{ ip }</code></td>
+                        <td><code>ipTestResult</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="api-section">
+            <h3>🔍 CVE Scanning</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Payload</th>
+                        <th>Response Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>getCVESummary</code></td>
+                        <td><code>{}</code></td>
+                        <td><code>cveSummary</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>getAllCVEs</code></td>
+                        <td><code>{}</code></td>
+                        <td><code>allCVEs</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>scanPackageCVE</code></td>
+                        <td><code>{ name, version }</code></td>
+                        <td><code>cveScanResult</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="api-section">
+            <h3>🕸️ Dependency Graph</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Payload</th>
+                        <th>Response Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>getGraphRoots</code></td>
+                        <td><code>{}</code></td>
+                        <td><code>graphRoots</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>getGraphNode</code></td>
+                        <td><code>{ name }</code></td>
+                        <td><code>graphNode</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="api-section">
+            <h3>📋 Audit Logs</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Payload</th>
+                        <th>Response Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>getAuditLogs</code></td>
+                        <td><code>{ limit? }</code></td>
+                        <td><code>auditLogs</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>getScanHistory</code></td>
+                        <td><code>{ limit? }</code></td>
+                        <td><code>scanHistory</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>getRequestLogs</code></td>
+                        <td><code>{ limit? }</code></td>
+                        <td><code>requestLogs</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="api-section">
+            <h3>📦 Package Management</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Payload</th>
+                        <th>Response Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>deletePackage</code></td>
+                        <td><code>{ name }</code></td>
+                        <td><code>packageDeleted</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>approveQuarantine</code></td>
+                        <td><code>{ file }</code></td>
+                        <td><code>quarantineApproved</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>deleteQuarantineFile</code></td>
+                        <td><code>{ file }</code></td>
+                        <td><code>quarantineDeleted</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>clearQuarantine</code></td>
+                        <td><code>{}</code></td>
+                        <td><code>quarantineCleared</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="api-section">
+            <h3>⚡ Auto-Allow Settings</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Payload</th>
+                        <th>Response Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>getAutoAllowSetting</code></td>
+                        <td><code>{}</code></td>
+                        <td><code>autoAllowSetting</code></td>
+                        <td>Get current auto-allow local publish setting</td>
+                    </tr>
+                    <tr>
+                        <td><code>setAutoAllowSetting</code></td>
+                        <td><code>{ enabled: boolean }</code></td>
+                        <td><code>autoAllowSetting</code></td>
+                        <td>Enable/disable auto-allow for locally published packages</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="tip-box" style="margin-top: 1rem;">
+                <h4>💡 Tip</h4>
+                <p>When <code>auto_allow_local_publish</code> is enabled (default), packages published via
+                    <code>npm publish --registry http://localhost:4873</code> bypass quarantine and security
+                    scanning for faster agent workflows.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2>Example: Full Flow</h2>
+        <div class="code-block"><code><span class="comment">// 1. Connect</span>
+const token = window.ADMIN_SESSION_TOKEN;
+const ws = new WebSocket(`ws://localhost:4873/-/admin/ws?token=${token}`);
+
+<span class="comment">// 2. Wait for connection</span>
+ws.onopen = () => console.log('Connected');
+
+<span class="comment">// 3. Handle messages</span>
+ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    console.log(msg.type, msg.data);
+};
+
+<span class="comment">// 4. Send request</span>
+ws.send(JSON.stringify({ action: 'getStats', payload: {} }));
+
+<span class="comment">// 5. Add IP to allowlist</span>
+ws.send(JSON.stringify({
+    action: 'addAllowlistEntry',
+    payload: { pattern: '192.168.1.*', description: 'Local network' }
+}));</code></div>
+    </section>
+
+    <footer>
+        <p>
+            AgentRegistry is licensed under <a href="../LICENSE">Apache 2.0</a>.
+            Created by <strong>Giuseppe Scotto Lavina</strong>.
+        </p>
+    </footer>
+
+    <style>
+        .api-section {
+            margin-bottom: 2rem;
+        }
+
+        .api-section h3 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .api-table th,
+        .api-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .api-table th {
+            background: var(--surface);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .api-table code {
+            background: var(--surface);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+    </style>
+    <script>
+        // Mobile Navigation Toggle
+        function toggleMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        }
+        function closeMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+
+</html>

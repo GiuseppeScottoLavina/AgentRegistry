@@ -1,0 +1,54 @@
+{
+  "name": "agentregistry",
+  "version": "0.1.0",
+  "main": "server.ts",
+  "devDependencies": {
+    "@types/bun": "^1.3.6",
+    "bun-types": "^1.3.6",
+    "typescript": "^5.9.3"
+  },
+  "description": "Minimal local NPM registry server for agent-to-agent package sharing",
+  "author": "Giuseppe Scotto Lavina",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GiuseppeScottoLavina/AgentRegistry.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GiuseppeScottoLavina/AgentRegistry/issues"
+  },
+  "homepage": "https://github.com/GiuseppeScottoLavina/AgentRegistry#readme",
+  "keywords": [
+    "npm",
+    "registry",
+    "local",
+    "minimal",
+    "ai",
+    "mcp",
+    "agent",
+    "security",
+    "bun",
+    "quarantine",
+    "lightweight"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "scripts": {
+    "start": "bun run src/server.ts",
+    "daemon": "bun run src/server.ts --daemon",
+    "dev": "bun run --watch src/server.ts",
+    "cli": "bun run src/cli.ts",
+    "agentregistry": "bun run src/cli.ts",
+    "build": "echo '#!/usr/bin/env bun\nimport \"./src/cli.ts\"' > ./agentregistry && chmod +x ./agentregistry",
+    "install-service": "./scripts/install.sh",
+    "uninstall-service": "./scripts/uninstall.sh",
+    "pretest": "rm -rf test-storage",
+    "test": "bun test",
+    "posttest": "rm -rf test-storage"
+  },
+  "type": "module",
+  "dependencies": {
+    "tar": "^7.5.6"
+  }
+}

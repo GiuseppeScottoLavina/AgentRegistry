@@ -1,0 +1,551 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "AgentRegistry Registry API",
+        "version": "0.1.0",
+        "description": "Agent-optimized local NPM registry for agent-to-agent package sharing. Zero external dependencies, built with Bun.",
+        "contact": {
+            "name": "Giuseppe Scotto Lavina"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:4873",
+            "description": "Local development server"
+        }
+    ],
+    "paths": {
+        "/{packageName}": {
+            "get": {
+                "summary": "Get package metadata",
+                "operationId": "getPackage",
+                "tags": [
+                    "Packages"
+                ],
+                "parameters": [
+                    {
+                        "name": "packageName",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Package name (e.g., 'lodash' or '@scope/name')"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Package metadata",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PackageMetadata"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Publish a package",
+                "operationId": "publishPackage",
+                "tags": [
+                    "Packages"
+                ],
+                "parameters": [
+                    {
+                        "name": "packageName",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PublishPayload"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Package published successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "rev": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/SecurityBlocked"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/VersionConflict"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Unpublish a package",
+                "operationId": "unpublishPackage",
+                "tags": [
+                    "Packages"
+                ],
+                "parameters": [
+                    {
+                        "name": "packageName",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Package deleted"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/{packageName}/{version}": {
+            "get": {
+                "summary": "Get specific version metadata",
+                "operationId": "getPackageVersion",
+                "tags": [
+                    "Packages"
+                ],
+                "parameters": [
+                    {
+                        "name": "packageName",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Semver version (e.g., '1.0.0')"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Version metadata",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VersionMetadata"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/-/v1/search": {
+            "get": {
+                "summary": "Search packages",
+                "operationId": "searchPackages",
+                "tags": [
+                    "Search"
+                ],
+                "parameters": [
+                    {
+                        "name": "text",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Search query"
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        },
+                        "description": "Maximum results to return"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SearchResults"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/-/capabilities": {
+            "get": {
+                "summary": "Get server capabilities for AI agents",
+                "operationId": "getCapabilities",
+                "tags": [
+                    "Discovery"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Server capabilities",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Capabilities"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/-/ping": {
+            "get": {
+                "summary": "Health check",
+                "operationId": "ping",
+                "tags": [
+                    "Discovery"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Server is healthy",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string",
+                                    "example": "pong"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "PackageMetadata": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "dist-tags": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "versions": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/VersionMetadata"
+                        }
+                    },
+                    "time": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                }
+            },
+            "VersionMetadata": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    },
+                    "main": {
+                        "type": "string"
+                    },
+                    "dependencies": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "dist": {
+                        "type": "object",
+                        "properties": {
+                            "tarball": {
+                                "type": "string",
+                                "format": "uri"
+                            },
+                            "shasum": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "PublishPayload": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "versions",
+                    "_attachments"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "versions": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/VersionMetadata"
+                        }
+                    },
+                    "dist-tags": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "_attachments": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "string",
+                                    "format": "byte",
+                                    "description": "Base64-encoded tarball"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "SearchResults": {
+                "type": "object",
+                "properties": {
+                    "objects": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "package": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "version": {
+                                            "type": "string"
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "isLocal": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "score": {
+                                    "type": "object",
+                                    "properties": {
+                                        "final": {
+                                            "type": "number"
+                                        },
+                                        "detail": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "Capabilities": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    },
+                    "agent_optimized": {
+                        "type": "boolean"
+                    },
+                    "tools": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ToolDefinition"
+                        }
+                    }
+                }
+            },
+            "ToolDefinition": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "method": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "parameters": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "type": "string"
+                                },
+                                "required": {
+                                    "type": "boolean"
+                                },
+                                "description": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "responses": {
+            "NotFound": {
+                "description": "Package or version not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Not Found"
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "SecurityBlocked": {
+                "description": "Package blocked by security scan",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                },
+                                "action_required": {
+                                    "type": "string"
+                                },
+                                "instructions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "admin_url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "VersionConflict": {
+                "description": "Version already exists",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Conflict"
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Packages",
+            "description": "Package operations"
+        },
+        {
+            "name": "Search",
+            "description": "Package discovery"
+        },
+        {
+            "name": "Discovery",
+            "description": "Server capabilities and health"
+        }
+    ]
+}

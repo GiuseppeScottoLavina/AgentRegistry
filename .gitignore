@@ -1,0 +1,31 @@
+# Storage
+storage/
+
+# Dependencies
+node_modules/
+
+# Database files
+*.db
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# Build artefacts
+dist/
+web/
+tinynpm
+tinynpm-cli
+tinynpm-release
+tinynpm-v1
+*.tgz
+graph.json
+lighthouse-report*.json
+
+# Dev-only scripts
+scripts/lighthouse-audit.*
+bun.lock

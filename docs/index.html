@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AgentRegistry - Minimal local NPM registry for agent-to-agent package sharing. Lightweight, built with Bun.">
+    <title>AgentRegistry Documentation</title>
+    <link rel="icon" type="image/png" href="assets/favicon.webp">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="http://localhost:4873/-/admin" class="logo">
+                <img src="assets/logo_3d.webp" alt="AgentRegistry"
+                    style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 15px rgba(139,92,246,0.25);">
+                <span
+                    style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-0.02em;">
+                    Tiny<span
+                        style="background:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NPM</span>
+                </span>
+                <span style="font-weight:400;font-size:1.1rem;opacity:0.6;margin-left:0.25rem;">Docs</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="http://localhost:4873/-/admin" class="active">Home</a></li>
+                <li><a href="getting-started/">Getting Started</a></li>
+                <li><a href="admin-panel/">Admin Panel</a></li>
+                <li><a href="api/">API</a></li>
+                <li><a href="websocket-api/">WebSocket</a></li>
+                <li><a href="security/">Security</a></li>
+                <li><a href="errors/">Errors</a></li>
+                <li><a href="examples/">Examples</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav" id="mobile-nav">
+        <ul>
+            <li><a href="http://localhost:4873/-/admin" class="active" onclick="closeMobileNav()">🏠 Home</a></li>
+            <li><a href="getting-started/" onclick="closeMobileNav()">🚀 Getting Started</a></li>
+            <li><a href="admin-panel/" onclick="closeMobileNav()">🎛️ Admin Panel</a></li>
+            <li><a href="api/" onclick="closeMobileNav()">📡 API</a></li>
+            <li><a href="websocket-api/" onclick="closeMobileNav()">🔌 WebSocket</a></li>
+            <li><a href="security/" onclick="closeMobileNav()">🛡️ Security</a></li>
+            <li><a href="errors/" onclick="closeMobileNav()">⚠️ Errors</a></li>
+            <li><a href="examples/" onclick="closeMobileNav()">📋 Examples</a></li>
+        </ul>
+    </div>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>The AI-Native NPM Registry</h1>
+            <p class="hero-tagline">
+                <strong>The first local registry built for AI agent workflows.</strong><br>
+                Zero config. Lightweight. Zero hassle.
+            </p>
+            <div class="hero-highlights"
+                style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin:1.5rem 0;">
+                <span
+                    style="background:rgba(139,92,246,0.2);padding:0.5rem 1rem;border-radius:20px;font-size:0.9rem;border:1px solid rgba(139,92,246,0.3);">🤖
+                    MCP Ready</span>
+                <span
+                    style="background:rgba(34,197,94,0.2);padding:0.5rem 1rem;border-radius:20px;font-size:0.9rem;border:1px solid rgba(34,197,94,0.3);">🛡️
+                    Security First</span>
+                <span
+                    style="background:rgba(6,182,212,0.2);padding:0.5rem 1rem;border-radius:20px;font-size:0.9rem;border:1px solid rgba(6,182,212,0.3);">⚡
+                    1ms Response</span>
+            </div>
+            <div class="hero-buttons">
+                <a href="getting-started/" class="btn btn-primary">🚀 Get Started in 30 Seconds</a>
+                <a href="http://localhost:4873/-/admin" class="btn" target="_blank">⚡ Open Admin Panel</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="stats-grid">
+        <div class="stat-card"
+            style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05));">
+            <div class="stat-value" style="color: #a78bfa;">0</div>
+            <div class="stat-label">Dependencies</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">~1ms</div>
+            <div class="stat-label">Response Time</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">~10ms</div>
+            <div class="stat-label">Security Scan</div>
+        </div>
+        <div class="stat-card"
+            style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.05));">
+            <div class="stat-value" style="color: #22c55e;">468/468</div>
+            <div class="stat-label">Tests Passing ✓</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">88%</div>
+            <div class="stat-label">Code Coverage</div>
+        </div>
+    </div>
+
+    <!-- Built for AI Agents - Prime Position -->
+    <section class="section"
+        style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05)); border-radius: 16px; margin: 2rem auto; padding: 2rem;">
+        <h2 class="section-title">🤖 Built for AI Agents</h2>
+        <p class="section-subtitle">The <strong>first NPM registry</strong> designed for AI-powered development
+            workflows</p>
+
+        <div class="features-grid" style="margin-top: 1.5rem;">
+            <div class="feature-card" style="border: 1px solid rgba(139, 92, 246, 0.3);">
+                <div class="feature-icon">🔌</div>
+                <h3>MCP Server</h3>
+                <p>Native Model Context Protocol integration. Works with Claude, GPT, and any MCP-compatible AI.</p>
+            </div>
+            <div class="feature-card" style="border: 1px solid rgba(139, 92, 246, 0.3);">
+                <div class="feature-icon">📄</div>
+                <h3>llms.txt</h3>
+                <p>AI discovery protocol for automated tool detection. Your AI assistant finds AgentRegistry automatically.
+                </p>
+            </div>
+            <div class="feature-card" style="border: 1px solid rgba(139, 92, 246, 0.3);">
+                <div class="feature-icon">📋</div>
+                <h3>OpenAPI + agent.json</h3>
+                <p>Full API documentation in AI-readable formats. Every endpoint documented for agents.</p>
+            </div>
+        </div>
+
+        <div class="code-block" style="margin-top: 1.5rem; text-align: left;">
+            <code><span class="comment"># AI agents discover and use AgentRegistry automatically</span>
+<span class="command">GET</span> <span class="string">/llms.txt</span>          <span class="comment"># AI discovery protocol</span>
+<span class="command">GET</span> <span class="string">/agent.json</span>       <span class="comment"># Agent capabilities</span>
+<span class="command">GET</span> <span class="string">/openapi.json</span>     <span class="comment"># Full API spec</span>
+<span class="command">WS</span>  <span class="string">/-/admin/ws</span>        <span class="comment"># Real-time control</span></code>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 class="section-title">Core Features</h2>
+        <p class="section-subtitle">Everything you need for secure, fast, local package management</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Quarantine-First Security</h3>
+                <p>Every package scanned before use. OWASP/CWE pattern detection. 2025-2026 attack pattern database.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>~1ms Response Time</h3>
+                <p>Memory-first caching with disk fallback. Built on Bun's native performance. No waiting.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📦</div>
+                <h3>Lightweight</h3>
+                <p>Just Bun + 1 dependency (tar). Compare to Verdaccio's 60+ packages.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎛️</div>
+                <h3>Premium Admin UI</h3>
+                <p>Real-time WebSocket dashboard. Glassmorphic design. No page refreshes ever.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🕸️</div>
+                <h3>Dependency Graph</h3>
+                <p>Interactive D3.js visualization. See your package ecosystem at a glance.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌐</div>
+                <h3>Upstream Proxy</h3>
+                <p>Transparent proxy to npmjs.org. Public and private packages work together seamlessly.</p>
+            </div>
+        </div>
+
+        <div class="quick-start">
+            <h2>⚡ Quick Start</h2>
+            <div class="code-block"><code><span class="comment"># Start the server</span>
+<span class="command">bun run start</span>
+
+<span class="comment"># Configure npm to use local registry</span>
+<span class="command">npm config set registry</span> <span class="string">http://localhost:4873</span>
+
+<span class="comment"># Publish your package</span>
+<span class="command">npm publish</span>
+
+<span class="comment"># Install from local registry</span>
+<span class="command">npm install</span> <span class="string">my-package</span></code></div>
+            <p style="color: var(--text-secondary); margin-top: 1rem;">
+                That's it! AgentRegistry works seamlessly with npm, bun, yarn, and pnpm.
+            </p>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <div style="text-align: center;">
+            <img src="assets/hero.webp" alt="AgentRegistry Hero" width="1024" height="564" loading="lazy"
+                style="max-width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 2rem;">
+        </div>
+    </section>
+
+    <footer>
+        <p>
+            AgentRegistry is licensed under <a href="../LICENSE">Apache 2.0</a>.
+            Created by <strong>Giuseppe Scotto Lavina</strong>.
+        </p>
+        <p style="margin-top: 1rem;">
+            <a href="https://github.com/GiuseppeScottoLavina/AgentRegistry">GitHub</a> ·
+            <a href="admin-panel/">Documentation</a> ·
+            <a href="api/">API</a> ·
+            <a href="errors/">Error Codes</a> ·
+            <a href="examples/">Examples</a>
+        </p>
+    </footer>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+        <span id="theme-icon">🌙</span>
+    </button>
+
+    <script>
+        // Theme Toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const newTheme = current === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('agentregistry-theme', newTheme);
+            document.getElementById('theme-icon').textContent = newTheme === 'light' ? '☀️' : '🌙';
+        }
+
+        // Mobile Navigation Toggle
+        function toggleMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            // Prevent body scroll when menu is open
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        }
+
+        function closeMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Load saved theme
+        (function () {
+            const saved = localStorage.getItem('agentregistry-theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+                document.getElementById('theme-icon').textContent = saved === 'light' ? '☀️' : '🌙';
+            }
+        })();
+
+        // Copy buttons for code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            if (!block.querySelector('.copy-btn')) {
+                const btn = document.createElement('button');
+                btn.className = 'copy-btn';
+                btn.textContent = '📋 Copy';
+                btn.onclick = function () {
+                    const code = block.querySelector('code') || block;
+                    navigator.clipboard.writeText(code.textContent).then(() => {
+                        btn.textContent = '✅ Copied!';
+                        btn.classList.add('copied');
+                        setTimeout(() => {
+                            btn.textContent = '📋 Copy';
+                            btn.classList.remove('copied');
+                        }, 2000);
+                    });
+                };
+                block.appendChild(btn);
+            }
+        });
+    </script>
+</body>
+
+</html>

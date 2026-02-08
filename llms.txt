@@ -1,0 +1,99 @@
+# AgentRegistry - Local NPM Registry for Agent-to-Agent Package Sharing
+
+> Minimal, high-performance registry optimized for AI agent workflows.
+> Single dependency (tar). Built with Bun. Alpha (0.1.0).
+
+## Quick Info
+- base_url: http://localhost:4873
+- start_cmd: AGENTREGISTRY_HOME=/tmp/.agentregistry bun run start
+- protocol: HTTP/1.1 and WebSocket
+- auth: Token-based for admin operations (auto-injected)
+
+## API Discovery
+- openapi: /openapi.json
+- capabilities: /-/capabilities
+- admin_panel: /-/admin
+
+## Core Operations
+
+### Publish Package
+```
+PUT /{package-name}
+Content-Type: application/json
+
+Body: NPM publish payload with base64-encoded tarball in _attachments
+Response: { "ok": true, "id": "{name}", "rev": "{version}" }
+```
+
+### Get Package Metadata
+```
+GET /{package-name}
+Response: Package metadata with versions, dist-tags, dependencies
+```
+
+### Get Specific Version
+```
+GET /{package-name}/{version}
+Response: Single version metadata
+```
+
+### Download Tarball
+```
+GET /{package-name}/-/{tarball-filename}
+Response: .tgz binary
+```
+
+### Search Packages
+```
+GET /-/v1/search?text={query}&size={limit}
+Response: { objects: [{ package: {...}, score: {...} }] }
+```
+
+## Admin Operations (WebSocket)
+
+Connect: ws://localhost:4873/-/admin/ws?token={ADMIN_SESSION_TOKEN}
+
+### Stats
+Action: getStats → Response type: stats
+Action: getPackages → Response type: packages
+Action: getCache → Response type: cache
+
+### Security
+Action: getAllowlist → Response type: allowlist
+Action: addAllowlistEntry → Payload: { pattern, description }
+Action: testIP → Payload: { ip }
+
+### Quarantine
+Action: getQuarantine → Response type: quarantine
+Action: approveQuarantine → Payload: { file }
+Action: deleteQuarantine → Payload: { file }
+
+## Security Notes
+- All packages from upstream are security-scanned before caching
+- Blocked packages go to quarantine and require human approval
+- Server binds to 127.0.0.1 only (localhost)
+- Path traversal attacks are blocked
+
+## Error Handling
+All errors return structured JSON:
+```json
+{
+  "error": "Error type",
+  "message": "Human/agent readable description"
+}
+```
+
+Security blocks include remediation instructions:
+```json
+{
+  "error": "Package blocked by security scan",
+  "action_required": "HUMAN INTERVENTION REQUIRED",
+  "admin_url": "http://localhost:4873/-/admin"
+}
+```
+
+## For AI Agents
+- Use structured search for package discovery
+- Check /-/capabilities for available operations
+- Handle 403 errors by directing humans to admin panel
+- All operations are idempotent and retry-safe

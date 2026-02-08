@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AgentRegistry Examples - Practical usage examples and code snippets">
+    <title>Examples - AgentRegistry</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.webp">
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="http://localhost:4873/-/admin" class="logo">
+                <img src="../assets/logo_3d.webp" alt="AgentRegistry"
+                    style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 15px rgba(139,92,246,0.25);">
+                <span
+                    style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-0.02em;">
+                    Tiny<span style="background:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NPM</span>
+                </span>
+                <span style="font-weight:400;font-size:1.1rem;opacity:0.6;margin-left:0.25rem;">Docs</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="../">Home</a></li>
+                <li><a href="../getting-started/">Getting Started</a></li>
+                <li><a href="../admin-panel/">Admin Panel</a></li>
+                <li><a href="../api/">API</a></li>
+                <li><a href="../websocket-api/">WebSocket</a></li>
+                <li><a href="../security/">Security</a></li>
+                <li><a href="../errors/">Errors</a></li>
+                <li><a href="./" class="active">Examples</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav" id="mobile-nav">
+        <ul>
+            <li><a href="../" onclick="closeMobileNav()">🏠 Home</a></li>
+            <li><a href="../getting-started/" onclick="closeMobileNav()">🚀 Getting Started</a></li>
+            <li><a href="../admin-panel/" onclick="closeMobileNav()">🎛️ Admin Panel</a></li>
+            <li><a href="../api/" onclick="closeMobileNav()">📡 API</a></li>
+            <li><a href="../websocket-api/" onclick="closeMobileNav()">🔌 WebSocket</a></li>
+            <li><a href="../security/" onclick="closeMobileNav()">🛡️ Security</a></li>
+            <li><a href="../errors/" onclick="closeMobileNav()">⚠️ Errors</a></li>
+            <li><a href="../examples/" onclick="closeMobileNav()">📋 Examples</a></li>
+        </ul>
+    </div>
+
+    <section class="hero" style="padding: 2rem 0; margin-top: 80px;">
+        <div class="hero-content">
+            <h1>📚 Examples</h1>
+            <p>Practical code examples for common AgentRegistry use cases.</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>🚀 Quick Publish</h2>
+        <p>Publish a package to your local registry:</p>
+        <div class="code-block copyable">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+            <code># In your package directory
+npm config set registry http://localhost:4873
+
+# Publish
+npm publish
+
+# Verify
+curl http://localhost:4873/my-package | jq .</code>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2>📦 Programmatic Publish (Node.js)</h2>
+        <p>Publish a package programmatically:</p>
+        <div class="code-block copyable">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+            <code>const fs = require('fs');
+
+async function publishPackage() {
+    const tarball = fs.readFileSync('./my-package-1.0.0.tgz');
+    
+    const payload = {
+        name: 'my-package',
+        versions: {
+            '1.0.0': {
+                name: 'my-package',
+                version: '1.0.0',
+                main: 'index.js'
+            }
+        },
+        'dist-tags': { latest: '1.0.0' },
+        _attachments: {
+            'my-package-1.0.0.tgz': {
+                data: tarball.toString('base64')
+            }
+        }
+    };
+    
+    const res = await fetch('http://localhost:4873/my-package', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    
+    console.log(await res.json());
+}
+
+publishPackage();</code>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2>🔌 WebSocket Admin Client</h2>
+        <p>Connect to the admin WebSocket and fetch stats:</p>
+        <div class="code-block copyable">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+            <code>// First get the token from admin page
+const adminRes = await fetch('http://localhost:4873/-/admin');
+const html = await adminRes.text();
+const token = html.match(/ADMIN_SESSION_TOKEN\s*=\s*['"]([^'"]+)['"]/)[1];
+
+// Connect WebSocket
+const ws = new WebSocket(`ws://localhost:4873/-/admin/ws?token=${token}`);
+
+ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    console.log(msg.type, msg.data);
+};
+
+ws.onopen = () => {
+    // Request stats
+    ws.send(JSON.stringify({ action: 'getStats', payload: {} }));
+    
+    // Request packages
+    ws.send(JSON.stringify({ action: 'getPackages', payload: {} }));
+};</code>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2>🛡️ IP Allowlist Configuration</h2>
+        <p>Manage IP allowlist via WebSocket:</p>
+        <div class="code-block copyable">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+            <code>// Enable allowlist in 'allow' mode
+ws.send(JSON.stringify({
+    action: 'updateAllowlistConfig',
+    payload: { enabled: true, mode: 'allow' }
+}));
+
+// Add allowed IP range
+ws.send(JSON.stringify({
+    action: 'addAllowlistEntry',
+    payload: { 
+        pattern: '192.168.1.0/24',
+        description: 'Local network'
+    }
+}));
+
+// Test if IP would be allowed
+ws.send(JSON.stringify({
+    action: 'testIP',
+    payload: { ip: '192.168.1.50' }
+}));</code>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2>🔍 Search Packages</h2>
+        <p>Search both local and upstream packages:</p>
+        <div class="code-block copyable">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+            <code>async function searchPackages(query) {
+    const res = await fetch(`http://localhost:4873/-/v1/search?text=${query}`);
+    const data = await res.json();
+    
+    return data.objects.map(obj => ({
+        name: obj.package.name,
+        version: obj.package.version,
+        description: obj.package.description,
+        isLocal: obj.package.isLocal
+    }));
+}
+
+// Usage
+const results = await searchPackages('lodash');
+console.log(results);</code>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2>💾 Backup and Restore</h2>
+        <p>Use the CLI for backups:</p>
+        <div class="code-block copyable">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+            <code># Create backup
+bun run cli.ts backup
+# Output: Created backup: backups/agentregistry-backup-2026-01-24.zip
+
+# Restore from backup
+bun run cli.ts restore backups/agentregistry-backup-2026-01-24.zip
+
+# List available backups
+ls -la backups/</code>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+        <h2>🧪 Test Package Publishing</h2>
+        <p>Quick test to verify registry is working:</p>
+        <div class="code-block copyable">
+            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+            <code>#!/bin/bash
+# Create test package
+mkdir -p /tmp/test-pkg && cd /tmp/test-pkg
+echo '{"name":"test-pkg","version":"1.0.0"}' > package.json
+echo 'module.exports = "hello"' > index.js
+
+# Pack and publish
+npm pack
+npm publish --registry http://localhost:4873
+
+# Verify
+curl -s http://localhost:4873/test-pkg | jq '.versions["1.0.0"].name'
+# Output: "test-pkg"
+
+# Cleanup
+npm unpublish test-pkg@1.0.0 --registry http://localhost:4873 --force</code>
+        </div>
+    </section>
+
+    <footer>
+        <p>
+            AgentRegistry is licensed under <a href="../../LICENSE">Apache 2.0</a>.
+            Created by <strong>Giuseppe Scotto Lavina</strong>.
+        </p>
+    </footer>
+
+    <style>
+        .code-block.copyable {
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+        }
+
+        .copy-btn.copied {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+    </style>
+
+    <script>
+        function copyCode(btn) {
+            const code = btn.parentElement.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✅ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+<script>
+        // Mobile Navigation Toggle
+        function toggleMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        }
+        function closeMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+
+</html>

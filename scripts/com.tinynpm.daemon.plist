@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Service identifier -->
+    <key>Label</key>
+    <string>com.tinynpm.daemon</string>
+    
+    <!-- Command to run -->
+    <key>ProgramArguments</key>
+    <array>
+        <!-- Will be replaced by install.sh with actual path -->
+        <string>__BUN_PATH__</string>
+        <string>run</string>
+        <string>__TINYNPM_PATH__/src/server.ts</string>
+        <string>--daemon</string>
+    </array>
+    
+    <!-- Working directory -->
+    <key>WorkingDirectory</key>
+    <string>__TINYNPM_PATH__</string>
+    
+    <!-- Start at boot -->
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <!-- Keep alive - ALWAYS restart (even after graceful shutdown) -->
+    <key>KeepAlive</key>
+    <true/>
+    
+    <!-- Throttle restarts (wait 10 seconds between restarts) -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    
+    <!-- Log output -->
+    <key>StandardOutPath</key>
+    <string>__HOME__/.tinynpm/logs/launchd-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>__HOME__/.tinynpm/logs/launchd-stderr.log</string>
+    
+    <!-- Environment -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    </dict>
+    
+    <!-- Run as current user (not root) -->
+    <key>UserName</key>
+    <string>__USER__</string>
+</dict>
+</plist>

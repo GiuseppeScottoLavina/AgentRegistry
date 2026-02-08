@@ -1,0 +1,56 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "name": "agentregistry",
+    "version": "0.1.0",
+    "description": "Minimal local NPM registry for agent-to-agent package sharing",
+    "type": "npm-registry",
+    "license": "Apache-2.0",
+    "endpoints": {
+        "registry": "http://localhost:4873",
+        "admin": "http://localhost:4873/-/admin",
+        "websocket": "ws://localhost:4873/-/admin/ws",
+        "docs": "http://localhost:4873/docs/",
+        "openapi": "http://localhost:4873/openapi.json",
+        "capabilities": "http://localhost:4873/-/capabilities"
+    },
+    "commands": {
+        "start": "AGENTREGISTRY_HOME=/tmp/.agentregistry bun run start",
+        "start_daemon": "AGENTREGISTRY_HOME=/tmp/.agentregistry bun run cli.ts start",
+        "stop": "bun run cli.ts stop",
+        "status": "bun run cli.ts status",
+        "publish": "npm publish --registry http://localhost:4873",
+        "install": "npm install --registry http://localhost:4873"
+    },
+    "health_check": {
+        "endpoint": "/-/ping",
+        "expected_response": {
+            "ok": true
+        }
+    },
+    "capabilities": [
+        "publish",
+        "install",
+        "search",
+        "security_scan",
+        "quarantine",
+        "audit_logs",
+        "dependency_graph"
+    ],
+    "ai_agent_features": {
+        "structured_errors": true,
+        "openapi_spec": true,
+        "machine_readable_manifest": true,
+        "websocket_admin_api": true,
+        "idempotent_operations": true
+    },
+    "troubleshooting": {
+        "eperm_macos": {
+            "cause": "macOS sandbox restrictions on home directory",
+            "solution": "Use AGENTREGISTRY_HOME=/tmp/.agentregistry environment variable"
+        },
+        "package_not_found": {
+            "cause": "Security scan in progress or package quarantined",
+            "solution": "Check Admin Panel at /-/admin"
+        }
+    }
+}

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AgentRegistry Admin Panel Guide - Complete user manual for the dashboard">
+    <title>Admin Panel Guide - AgentRegistry</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.webp">
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="http://localhost:4873/-/admin" class="logo">
+                <img src="../assets/logo_3d.webp" alt="AgentRegistry"
+                    style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 15px rgba(139,92,246,0.25);">
+                <span
+                    style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-0.02em;">
+                    Tiny<span
+                        style="background:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NPM</span>
+                </span>
+                <span style="font-weight:400;font-size:1.1rem;opacity:0.6;margin-left:0.25rem;">Docs</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="../">Home</a></li>
+                <li><a href="../getting-started/">Getting Started</a></li>
+                <li><a href="../admin-panel/" class="active">Admin Panel</a></li>
+                <li><a href="../api/">API</a></li>
+                <li><a href="../websocket-api/">WebSocket</a></li>
+                <li><a href="../security/">Security</a></li>
+                <li><a href="../errors/">Errors</a></li>
+                <li><a href="../examples/">Examples</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav" id="mobile-nav">
+        <ul>
+            <li><a href="../" onclick="closeMobileNav()">🏠 Home</a></li>
+            <li><a href="../getting-started/" onclick="closeMobileNav()">🚀 Getting Started</a></li>
+            <li><a href="../admin-panel/" onclick="closeMobileNav()">🎛️ Admin Panel</a></li>
+            <li><a href="../api/" onclick="closeMobileNav()">📡 API</a></li>
+            <li><a href="../websocket-api/" onclick="closeMobileNav()">🔌 WebSocket</a></li>
+            <li><a href="../security/" onclick="closeMobileNav()">🛡️ Security</a></li>
+            <li><a href="../errors/" onclick="closeMobileNav()">⚠️ Errors</a></li>
+            <li><a href="../examples/" onclick="closeMobileNav()">📋 Examples</a></li>
+        </ul>
+    </div>
+
+    <main class="docs-container">
+        <aside class="sidebar">
+            <h3>Admin Panel</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#accessing">Accessing the Panel</a></li>
+                <li><a href="#dashboard">Dashboard Tab</a></li>
+                <li><a href="#packages">Packages Tab</a></li>
+                <li><a href="#quarantine">Quarantine Tab</a></li>
+                <li><a href="#graph">Graph Tab</a></li>
+                <li><a href="#security-tab">Security Tab</a></li>
+                <li><a href="#audit">Audit Tab</a></li>
+                <li><a href="#scans">Scans Tab</a></li>
+                <li><a href="#requests">Requests Tab</a></li>
+                <li><a href="#metrics">Metrics Tab</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </aside>
+
+        <article class="content">
+            <h1>🎛️ Admin Panel User Guide</h1>
+            <p class="lead">Complete guide to managing your AgentRegistry registry through the web-based admin dashboard.</p>
+
+            <!-- Overview -->
+            <section id="overview">
+                <h2>Overview</h2>
+                <p>The AgentRegistry Admin Panel is a real-time, WebSocket-powered dashboard that provides complete control
+                    over your local NPM registry. It features a modern glassmorphic design with dark mode aesthetics and
+                    full responsiveness.</p>
+
+                <div class="highlight-box">
+                    <h4>🔐 Security Note</h4>
+                    <p>All admin operations are authenticated via session tokens, automatically injected by the server.
+                        The panel uses WebSocket for real-time communication and automatic reconnection.</p>
+                </div>
+
+                <h3 style="margin-top: 2rem;">📸 Screenshots</h3>
+                <div class="screenshot-gallery">
+                    <div class="gallery-tabs">
+                        <button class="gallery-tab active" onclick="showScreenshot('dashboard')">Dashboard</button>
+                        <button class="gallery-tab" onclick="showScreenshot('packages')">Packages</button>
+                        <button class="gallery-tab" onclick="showScreenshot('graph')">Graph</button>
+                        <button class="gallery-tab" onclick="showScreenshot('security')">Security</button>
+                        <button class="gallery-tab" onclick="showScreenshot('logs')">Logs</button>
+                    </div>
+                    <div class="gallery-container">
+                        <img id="ss-dashboard" src="../assets/screenshot-dashboard.webp" class="gallery-image active"
+                            alt="Dashboard Tab">
+                        <img id="ss-packages" src="../assets/screenshot-packages.webp" class="gallery-image"
+                            alt="Packages Tab">
+                        <img id="ss-graph" src="../assets/screenshot-graph.webp" class="gallery-image" alt="Graph Tab">
+                        <img id="ss-security" src="../assets/screenshot-security.webp" class="gallery-image"
+                            alt="Security Tab">
+                        <img id="ss-logs" src="../assets/screenshot-logs.webp" class="gallery-image" alt="Logs Tab">
+                    </div>
+                </div>
+                <style>
+                    .screenshot-gallery {
+                        margin: 1rem 0 2rem;
+                    }
+
+                    .gallery-tabs {
+                        display: flex;
+                        gap: 0.5rem;
+                        margin-bottom: 1rem;
+                        flex-wrap: wrap;
+                    }
+
+                    .gallery-tab {
+                        padding: 0.5rem 1rem;
+                        background: var(--surface);
+                        border: 1px solid var(--border);
+                        border-radius: 8px;
+                        cursor: pointer;
+                        color: var(--text-secondary);
+                        transition: all 0.2s;
+                    }
+
+                    .gallery-tab:hover {
+                        background: var(--surface-hover);
+                    }
+
+                    .gallery-tab.active {
+                        background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2));
+                        border-color: #8b5cf6;
+                        color: var(--text-primary);
+                    }
+
+                    .gallery-container {
+                        border-radius: 12px;
+                        overflow: hidden;
+                        border: 1px solid var(--border);
+                        background: var(--surface);
+                    }
+
+                    .gallery-image {
+                        display: none;
+                        width: 100%;
+                        height: auto;
+                    }
+
+                    .gallery-image.active {
+                        display: block;
+                    }
+                </style>
+                <script>
+                    function showScreenshot(name) {
+                        document.querySelectorAll('.gallery-image').forEach(img => img.classList.remove('active'));
+                        document.querySelectorAll('.gallery-tab').forEach(tab => tab.classList.remove('active'));
+                        document.getElementById('ss-' + name).classList.add('active');
+                        event.target.classList.add('active');
+                    }
+                </script>
+            </section>
+
+            <!-- Accessing -->
+            <section id="accessing">
+                <h2>Accessing the Panel</h2>
+                <p>Open your browser and navigate to:</p>
+                <div class="code-block"><code>http://localhost:4873/-/admin</code></div>
+                <p>The panel will automatically connect and display live server statistics.</p>
+            </section>
+
+            <!-- Dashboard Tab -->
+            <section id="dashboard">
+                <h2>📊 Dashboard Tab</h2>
+                <p>The main overview of your registry's health and status.</p>
+
+                <h3>Stats Cards</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Packages</strong></td>
+                            <td>Total number of packages in your registry</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tarballs</strong></td>
+                            <td>Total package versions (tarballs) stored</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Quarantine</strong></td>
+                            <td>Packages pending security review</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Memory</strong></td>
+                            <td>Current server memory usage</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Scans</strong></td>
+                            <td>Total security scans performed</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Requests</strong></td>
+                            <td>Total HTTP requests handled</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Connection Status</h3>
+                <p>The status indicator in the header shows:</p>
+                <ul>
+                    <li><span class="badge badge-success">●</span> <strong>Connected</strong> - WebSocket active</li>
+                    <li><span class="badge badge-danger">●</span> <strong>Disconnected</strong> - Attempting
+                        reconnection</li>
+                </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            </section>
+
+            <!-- Packages Tab -->
+            <section id="packages">
+                <h2>📦 Packages Tab</h2>
+                <p>View and manage all cached packages in your registry.</p>
+
+                <h3>Features</h3>
+                <ul>
+                    <li><strong>Smart Search</strong> - Type in the search box to find packages (local packages
+                        prioritized)</li>
+                    <li><strong>Sortable List</strong> - Click column headers to sort ascending/descending</li>
+                    <li><strong>Delete Package</strong> - Remove a package and all its versions from cache</li>
+                </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+                <div class="tip-box">
+                    <h4>💡 Tip</h4>
+                    <p>Deleting a cached upstream package will cause it to be re-fetched and re-scanned on the next
+                        install request.</p>
+                </div>
+            </section>
+
+            <!-- Quarantine Tab -->
+            <section id="quarantine">
+                <h2>🔒 Quarantine Tab</h2>
+                <p>Manage packages blocked by security scanning. All upstream packages pass through quarantine before
+                    caching.</p>
+
+                <h3>Auto-Allow Local Publish</h3>
+                <div class="highlight-box">
+                    <h4>⚡ Agent Workflow Optimization</h4>
+                    <p>Toggle at the top of the Quarantine tab controls whether locally published packages bypass
+                        quarantine and security scanning. <strong>Default: Enabled</strong></p>
+                    <ul>
+                        <li><strong>Enabled:</strong> Packages published via <code>npm publish</code> to your local
+                            registry skip quarantine for faster agent workflows</li>
+                        <li><strong>Disabled:</strong> All packages (local + upstream) go through security scanning</li>
+                    </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+                </div>
+
+                <h3>Actions</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Button</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>✅ Approve</strong></td>
+                            <td>Move package to tarballs, making it installable</td>
+                        </tr>
+                        <tr>
+                            <td><strong>🗑️ Delete</strong></td>
+                            <td>Permanently remove the quarantined file</td>
+                        </tr>
+                        <tr>
+                            <td><strong>🔍 View Issues</strong></td>
+                            <td>See the security issues that blocked the package</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Bulk Actions</h3>
+                <ul>
+                    <li><strong>Approve All</strong> - Move all quarantined packages to tarballs (bypassing scan)</li>
+                    <li><strong>Rescan All</strong> - Re-run security scan; auto-approves packages that now pass</li>
+                    <li><strong>Clear All</strong> - Delete all quarantined packages</li>
+                </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+                <div class="warning-box">
+                    <h4>⚠️ Warning</h4>
+                    <p>Approving a quarantined package bypasses security checks. Only approve packages you trust
+                        completely.</p>
+                </div>
+            </section>
+
+            <!-- Graph Tab -->
+            <section id="graph">
+                <h2>🕸️ Graph Tab</h2>
+                <p>Interactive D3.js force-directed dependency graph visualization.</p>
+
+                <h3>Navigation</h3>
+                <ul>
+                    <li><strong>Pan</strong> - Click and drag the background</li>
+                    <li><strong>Zoom</strong> - Mouse wheel or pinch gesture</li>
+                    <li><strong>Expand Node</strong> - Click a package to load its dependencies</li>
+                </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+                <h3>Legend</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Color</th>
+                            <th>Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span style="color: #8b5cf6;">●</span> Purple</td>
+                            <td>Local packages (published to your registry)</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: #06b6d4;">●</span> Cyan</td>
+                            <td>Upstream packages (from npmjs.org)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Filters</h3>
+                <p>Toggle <strong>"Only Local"</strong> checkbox to show only your locally published packages and their
+                    direct dependencies.</p>
+            </section>
+
+            <!-- Security Tab -->
+            <section id="security-tab">
+                <h2>🛡️ Security Tab (IP Allowlist)</h2>
+                <p>Configure IP-based access control for your registry.</p>
+
+                <h3>Configuration Options</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Setting</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Enable Allowlist</strong></td>
+                            <td>Master switch for IP filtering</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mode</strong></td>
+                            <td><em>allow</em> - only listed IPs can access<br><em>deny</em> - listed IPs are blocked
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Adding IP Rules</h3>
+                <p>Supported pattern formats:</p>
+                <ul>
+                    <li><code>192.168.1.100</code> - Exact IP match</li>
+                    <li><code>192.168.1.*</code> - Wildcard (matches 192.168.1.0-255)</li>
+                    <li><code>10.0.0.0/24</code> - CIDR notation (10.0.0.0-10.0.0.255)</li>
+                    <li><code>::1</code> - IPv6 localhost</li>
+                </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+                <h3>Testing Access</h3>
+                <p>Use the "Test IP" feature to verify if a specific IP would be allowed or denied based on current
+                    rules.</p>
+            </section>
+
+            <!-- Audit Tab -->
+            <section id="audit">
+                <h2>📜 Audit Tab</h2>
+                <p>Security event log with full audit trail.</p>
+
+                <h3>Sortable Columns</h3>
+                <ul>
+                    <li><strong>Action</strong> - Type of security event</li>
+                    <li><strong>Target</strong> - Affected package or resource</li>
+                    <li><strong>Severity</strong> - info, warn, or critical</li>
+                    <li><strong>Time</strong> - When the event occurred</li>
+                </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+                <h3>Export Options</h3>
+                <p>Export audit logs as JSON or CSV for external analysis. Use date filters to narrow the export range.
+                </p>
+            </section>
+
+            <!-- Scans Tab -->
+            <section id="scans">
+                <h2>🔍 Scans Tab</h2>
+                <p>History of all security scans performed on packages.</p>
+
+                <h3>Scan Details</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Package</strong></td>
+                            <td>Package name scanned</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Version</strong></td>
+                            <td>Scanned version</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status</strong></td>
+                            <td>✅ Safe or 🚨 Blocked</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Issues</strong></td>
+                            <td>Number of security issues found</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Time</strong></td>
+                            <td>Scan duration in milliseconds</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>Click <strong>View</strong> on any row to see detailed security findings including severity,
+                    description, and affected files.</p>
+            </section>
+
+            <!-- Requests Tab -->
+            <section id="requests">
+                <h2>📡 Requests Tab</h2>
+                <p>HTTP request log for debugging and monitoring.</p>
+
+                <h3>Logged Information</h3>
+                <ul>
+                    <li><strong>Method</strong> - GET, PUT, DELETE, etc.</li>
+                    <li><strong>Path</strong> - Requested URL path</li>
+                    <li><strong>Status</strong> - HTTP response code (color-coded)</li>
+                    <li><strong>Duration</strong> - Response time in milliseconds</li>
+                    <li><strong>Time</strong> - Request timestamp</li>
+                </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+                <div class="tip-box">
+                    <h4>💡 Tip</h4>
+                    <p>Request logs older than 7 days are automatically cleaned up. Security-related events are
+                        preserved in the Audit tab.</p>
+                </div>
+            </section>
+
+            <!-- Metrics Tab -->
+            <section id="metrics">
+                <h2>📈 Metrics Tab</h2>
+                <p>Real-time server performance metrics.</p>
+
+                <h3>Available Metrics</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>RPS</strong></td>
+                            <td>Requests per second (current)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Latency</strong></td>
+                            <td>Average response time</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cache Hit Rate</strong></td>
+                            <td>Percentage of requests served from cache</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Memory Usage</strong></td>
+                            <td>Current heap utilization</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>Metrics auto-refresh while the tab is active.</p>
+            </section>
+
+
+        </article>
+    </main>
+
+    <footer class="footer-docs">
+        <p>AgentRegistry Documentation · <a href="../">Home</a> · <a href="../LICENSE">License</a></p>
+    </footer>
+<script>
+        // Mobile Navigation Toggle
+        function toggleMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        }
+        function closeMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+
+</html>

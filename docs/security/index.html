@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AgentRegistry Security Guide - Protection layers and security architecture">
+    <title>Security - AgentRegistry</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.webp">
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="http://localhost:4873/-/admin" class="logo">
+                <img src="../assets/logo_3d.webp" alt="AgentRegistry"
+                    style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 15px rgba(139,92,246,0.25);">
+                <span
+                    style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-0.02em;">
+                    Tiny<span
+                        style="background:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NPM</span>
+                </span>
+                <span style="font-weight:400;font-size:1.1rem;opacity:0.6;margin-left:0.25rem;">Docs</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="../">Home</a></li>
+                <li><a href="../getting-started/">Getting Started</a></li>
+                <li><a href="../admin-panel/">Admin Panel</a></li>
+                <li><a href="../api/">API</a></li>
+                <li><a href="../websocket-api/">WebSocket</a></li>
+                <li><a href="../security/" class="active">Security</a></li>
+                <li><a href="../errors/">Errors</a></li>
+                <li><a href="../examples/">Examples</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav" id="mobile-nav">
+        <ul>
+            <li><a href="../" onclick="closeMobileNav()">🏠 Home</a></li>
+            <li><a href="../getting-started/" onclick="closeMobileNav()">🚀 Getting Started</a></li>
+            <li><a href="../admin-panel/" onclick="closeMobileNav()">🎛️ Admin Panel</a></li>
+            <li><a href="../api/" onclick="closeMobileNav()">📡 API</a></li>
+            <li><a href="../websocket-api/" onclick="closeMobileNav()">🔌 WebSocket</a></li>
+            <li><a href="../security/" onclick="closeMobileNav()">🛡️ Security</a></li>
+            <li><a href="../errors/" onclick="closeMobileNav()">⚠️ Errors</a></li>
+            <li><a href="../examples/" onclick="closeMobileNav()">📋 Examples</a></li>
+        </ul>
+    </div>
+
+    <main class="docs-container">
+        <aside class="sidebar">
+            <h3>Security</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#protection">Protection Layers</a></li>
+                <li><a href="#quarantine">Quarantine Flow</a></li>
+                <li><a href="#scanner">Security Scanner</a></li>
+                <li><a href="#allowlist">Package Allowlist</a></li>
+                <li><a href="#validation">Input Validation</a></li>
+                <li><a href="#limitations">Limitations</a></li>
+            </ul>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </aside>
+
+        <article class="content">
+            <h1>🔒 Security</h1>
+            <p class="lead">AgentRegistry is designed for localhost security with multiple protection layers.</p>
+
+            <div class="warning-box">
+                <h4>⚠️ LOCALHOST ONLY</h4>
+                <p>AgentRegistry is hardened for local use only. Do not expose it to the public internet or use it in
+                    multi-user production environments.</p>
+            </div>
+
+            <section id="overview">
+                <h2>Overview</h2>
+                <p>AgentRegistry implements a defense-in-depth approach with multiple security layers:</p>
+                <ul>
+                    <li>Network-level binding to localhost only</li>
+                    <li>Host header validation</li>
+                    <li>Input sanitization and validation</li>
+                    <li>Real-time static analysis</li>
+                    <li>Quarantine system for upstream packages</li>
+                    <li>Audit logging for all security events</li>
+                </ul>
+                <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </section>
+
+            <section id="protection">
+                <h2>Protection Layers</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Layer</th>
+                            <th>Protection</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Network</strong></td>
+                            <td>Binds to <code>127.0.0.1</code> only (not <code>0.0.0.0</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Host Check</strong></td>
+                            <td>Rejects non-localhost hosts (403)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Input Validation</strong></td>
+                            <td>Strict regex for names/versions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Path Traversal</strong></td>
+                            <td>Blocks <code>../</code>, null bytes, strict <code>basename()</code> checks</td>
+                        </tr>
+                        <tr>
+                            <td><strong>XSS Protection</strong></td>
+                            <td>Output encoding via <code>escapeHtml()</code> on all render paths</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Length Limits</strong></td>
+                            <td>Package names max 214 chars</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Security Scanner</strong></td>
+                            <td>Static analysis before caching (~10ms)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Quarantine</strong></td>
+                            <td>All upstream packages scanned first</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="quarantine">
+                <h2>Quarantine Flow</h2>
+                <p>All packages fetched from npmjs.org pass through security scanning before becoming available:</p>
+
+                <div class="code-block"><code><span class="command">npm install lodash</span>
+       ↓
+📥 Download from npmjs.org
+       ↓
+🔒 Write to storage/quarantine/
+       ↓
+🔍 Security scan (~10ms)
+       ↓
+✅ SAFE → Move to storage/tarballs/ + cache
+🚨 BLOCKED → Stays in quarantine, returns 403</code></div>
+
+                <div class="highlight-box">
+                    <h4>⚡ Auto-Allow for Local Publishes</h4>
+                    <p>By default, packages published locally via
+                        <code>npm publish --registry http://localhost:4873</code>
+                        <strong>bypass quarantine and security scanning</strong> for faster agent workflows.
+                    </p>
+                    <p>This behavior can be toggled in the Admin Panel → Quarantine tab, or via WebSocket API
+                        (<code>setAutoAllowSetting</code>).</p>
+                </div>
+
+                <h3>Blocked Package Response</h3>
+                <p>When a package is blocked, AgentRegistry returns an agent-friendly JSON response:</p>
+                <div class="code-block"><code>{
+  "error": "Package blocked by security scan",
+  "action_required": "HUMAN INTERVENTION REQUIRED",
+  "instructions": [
+    "Visit admin panel at http://localhost:4873/-/admin",
+    "Navigate to Quarantine tab",
+    "Review the security issues",
+    "Either approve or delete the package"
+  ],
+  "quarantine_location": "storage/quarantine/lodash-4.17.21.tgz"
+}</code></div>
+            </section>
+
+            <section id="scanner">
+                <h2>Security Scanner</h2>
+                <p>AgentRegistry performs static analysis based on OWASP and CWE patterns:</p>
+
+                <h3>What's Scanned</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Patterns Detected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge badge-danger">Critical</span></td>
+                            <td>
+                                <code>eval()</code>, <code>new Function()</code><br>
+                                <code>curl|sh</code>, remote code loading<br>
+                                Process spawn with shell commands
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-warning">High</span></td>
+                            <td>
+                                <code>child_process</code>, <code>exec()</code><br>
+                                SSH/npmrc access<br>
+                                Base64-encoded payloads
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge"
+                                    style="background: rgba(245,158,11,0.2); color: #f59e0b;">Medium</span></td>
+                            <td>
+                                File system writes<br>
+                                <code>.env</code> access<br>
+                                Prototype pollution patterns
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge" style="background: rgba(100,100,100,0.2); color: #999;">Low</span>
+                            </td>
+                            <td><code>process.env</code> access</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Performance</h3>
+                <p>The security scanner is optimized for speed:</p>
+                <ul>
+                    <li>Average scan time: <strong>~10ms</strong></li>
+                    <li>Scans all JavaScript files in the tarball</li>
+                    <li>Uses streaming extraction to minimize memory</li>
+                </ul>
+                <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </section>
+
+            <section id="allowlist">
+                <h2>Package Allowlist</h2>
+                <p>The Package Allowlist allows you to skip security scanning for trusted packages. This improves
+                    performance for known-safe dependencies.</p>
+
+                <h3>How It Works</h3>
+                <p>Packages matching an allowlist pattern bypass the security scanner entirely and are immediately
+                    cached without quarantine.</p>
+
+                <div class="highlight-box">
+                    <h4>📦 Categories</h4>
+                    <ul>
+                        <li><strong>verified</strong> – Core npm packages (lodash, express, etc.)</li>
+                        <li><strong>build-tools</strong> – Bundlers, compilers, transpilers</li>
+                        <li><strong>testing</strong> – Test frameworks (jest, vitest, mocha)</li>
+                        <li><strong>observability</strong> – Logging and monitoring packages</li>
+                        <li><strong>browser</strong> – Browser automation (puppeteer, playwright)</li>
+                        <li><strong>custom</strong> – User-added patterns</li>
+                    </ul>
+                </div>
+
+                <h3>Pattern Types</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pattern</th>
+                            <th>Matches</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>lodash</code></td>
+                            <td>Exact match only</td>
+                        </tr>
+                        <tr>
+                            <td><code>@opentelemetry/</code></td>
+                            <td>All packages in scope (e.g., <code>@opentelemetry/api</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><code>sentry-</code></td>
+                            <td>All packages starting with prefix (e.g., <code>sentry-sdk</code>)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Managing via Admin Panel</h3>
+                <p>Navigate to <strong>Security</strong> → <strong>Package Allowlist</strong> to:</p>
+                <ul>
+                    <li>Enable/disable the entire allowlist</li>
+                    <li>Filter by category</li>
+                    <li>Add custom package patterns</li>
+                    <li>Toggle individual entries on/off</li>
+                </ul>
+
+                <div class="tip-box">
+                    <h4>💡 Default Entries</h4>
+                    <p>AgentRegistry ships with ~60 default trusted packages. Default entries cannot be deleted, only
+                        disabled.</p>
+                </div>
+            </section>
+
+            <section id="validation">
+                <h2>Input Validation</h2>
+
+                <h3>Package Names</h3>
+                <div class="code-block"><code>/^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/i</code></div>
+                <ul>
+                    <li>Max 214 characters</li>
+                    <li>Supports scoped packages (<code>@scope/name</code>)</li>
+                    <li>No special characters except <code>-._~</code></li>
+                </ul>
+                <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <h3>Versions</h3>
+                <p>Strict semver validation with support for pre-release tags.</p>
+
+                <h3>Path Containment</h3>
+                <p>All file operations are validated to stay within <code>storage/</code>:</p>
+                <ul>
+                    <li>Blocks <code>../</code> (path traversal)</li>
+                    <li>Blocks URL-encoded variants (<code>..%2F</code>)</li>
+                    <li>Blocks null bytes</li>
+                    <li>Validates resolved path starts with storage directory</li>
+                </ul>
+                <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </section>
+
+            <section id="limitations">
+                <h2>Limitations</h2>
+
+                <div class="highlight-box">
+                    <h4>Designed For</h4>
+                    <ul>
+                        <li>✅ Local agent-to-agent package sharing</li>
+                        <li>✅ Development and testing</li>
+                        <li>✅ Private package hosting on localhost</li>
+                    </ul>
+                    <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+
+                <div class="warning-box">
+                    <h4>Not For</h4>
+                    <ul>
+                        <li>❌ Public internet exposure</li>
+                        <li>❌ Multi-user production environments</li>
+                        <li>❌ High-security enterprise deployments</li>
+                    </ul>
+                    <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+
+                <h3>Known Limitations</h3>
+                <ul>
+                    <li>Static analysis cannot detect all malicious patterns</li>
+                    <li>Obfuscated code may bypass detection</li>
+                    <li>No sandbox execution testing</li>
+                </ul>
+                <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="tip-box">
+                    <h4>💡 Best Practices</h4>
+                    <p>Always review quarantined packages before approving. When in doubt, delete the package and
+                        investigate the security issues reported.</p>
+                </div>
+            </section>
+
+        </article>
+    </main>
+
+    <footer class="footer-docs">
+        <p>AgentRegistry Documentation · <a href="../">Home</a> · <a href="../LICENSE">License</a></p>
+    </footer>
+    <script>
+        // Mobile Navigation Toggle
+        function toggleMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        }
+        function closeMobileNav() {
+            const hamburger = document.getElementById('hamburger');
+            const mobileNav = document.getElementById('mobile-nav');
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+
+</html>
