@@ -14,9 +14,9 @@
         <string>ulimit -n 65536; exec "__BUN_PATH__" run "__AGENTREGISTRY_PATH__/src/server.ts" --daemon</string>
     </array>
     
-    <!-- Working directory -->
+    <!-- Working directory (use ~/.agentregistry, NOT project dir — launchd can't access ~/Documents) -->
     <key>WorkingDirectory</key>
-    <string>__AGENTREGISTRY_PATH__</string>
+    <string>__HOME__/.agentregistry</string>
     
     <!-- File descriptor limits (Bun requires more than macOS default 256) -->
     <key>SoftResourceLimits</key>

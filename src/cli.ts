@@ -488,6 +488,25 @@ async function cmdRestart(): Promise<void> {
 }
 
 // ============================================================================
+// Helpers: recursive directory copy
+// ============================================================================
+
+async function copyDir(src: string, dest: string): Promise<void> {
+    await mkdir(dest, { recursive: true });
+    const entries = await readdir(src, { withFileTypes: true });
+    for (const entry of entries) {
+        const srcPath = join(src, entry.name);
+        const destPath = join(dest, entry.name);
+        if (entry.name === "node_modules" || entry.name === ".git") continue;
+        if (entry.isDirectory()) {
+            await copyDir(srcPath, destPath);
+        } else {
+            await copyFile(srcPath, destPath);
+        }
+    }
+}
+
+// ============================================================================
 // Launchd Install/Uninstall (macOS only)
 // ============================================================================
 
@@ -519,66 +538,140 @@ async function cmdInstall(): Promise<void> {
         // Not installed, continue
     }
 
-    // Read template
-    const templatePath = join(import.meta.dir, "..", "scripts", "com.agentregistry.daemon.plist");
-    let template: string;
-    try {
-        template = await readFile(templatePath, "utf-8");
-    } catch {
-        console.log(`❌ Template not found: ${templatePath}`);
-        console.log(`   Make sure you're running from the AgentRegistry project directory`);
+    const home = homedir();
+    const bunPath = Bun.which("bun") || `${home}/.bun/bin/bun`;
+    const appDir = `${home}/.agentregistry/app`;
+    const logDir = `${home}/.agentregistry/logs`;
+    const projectRoot = join(import.meta.dir, "..");
+
+    // Step 1: Copy app files to ~/.agentregistry/app/
+    // This avoids macOS TCC restrictions (launchd can't access ~/Documents, ~/Desktop, etc.)
+    console.log("📂 Copying app to ~/.agentregistry/app/ ...");
+    try { await rm(appDir, { recursive: true }); } catch { /* first install */ }
+    await mkdir(appDir, { recursive: true });
+    await mkdir(logDir, { recursive: true });
+
+    const filesToCopy = ["package.json", "tsconfig.json"];
+    const dirsToCopy = ["src", "scripts"];
+
+    for (const file of filesToCopy) {
+        try {
+            await copyFile(join(projectRoot, file), join(appDir, file));
+        } catch { /* optional */ }
+    }
+    for (const dir of dirsToCopy) {
+        try {
+            await stat(join(projectRoot, dir));
+            await copyDir(join(projectRoot, dir), join(appDir, dir));
+        } catch { /* optional */ }
+    }
+
+    // Step 2: Install dependencies
+    console.log("📦 Installing dependencies...");
+    const installProc = spawn({
+        cmd: [bunPath, "install", "--production"],
+        cwd: appDir,
+        stdio: ["inherit", "inherit", "inherit"],
+        env: { ...process.env, BUN_INSTALL_CACHE_DIR: "/tmp/bun-cache", TMPDIR: "/tmp" }
+    });
+    const installExit = await installProc.exited;
+    if (installExit !== 0) {
+        console.log(`❌ Failed to install dependencies (exit code: ${installExit})`);
         process.exit(1);
     }
 
-    // Find bun path
-    const bunPath = Bun.which("bun") || "/opt/homebrew/bin/bun";
-    const agentregistryPath = join(import.meta.dir, "..", "src");
-    const user = process.env.USER || "unknown";
-    const home = homedir();
+    // Step 3: Verify server.ts exists
+    const serverPath = join(appDir, "src", "server.ts");
+    try {
+        await stat(serverPath);
+    } catch {
+        console.log(`❌ server.ts not found at ${serverPath}`);
+        process.exit(1);
+    }
+    console.log(`✅ Server verified: ${serverPath}`);
 
-    // Fill template
-    const plistContent = template
-        .replace(/__BUN_PATH__/g, bunPath)
-        .replace(/__AGENTREGISTRY_PATH__/g, agentregistryPath)
-        .replace(/__USER__/g, user)
-        .replace(/__HOME__/g, home);
+    // Step 4: Generate plist inline (no template — avoids path bugs)
+    const plistContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>${LAUNCHD_LABEL}</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>ulimit -n 65536; exec "${bunPath}" run "${serverPath}" --daemon</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>${home}/.agentregistry</string>
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65536</integer>
+    </dict>
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65536</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    <key>StandardOutPath</key>
+    <string>${logDir}/launchd-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>${logDir}/launchd-stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:${home}/.bun/bin</string>
+        <key>HOME</key>
+        <string>${home}</string>
+        <key>AGENTREGISTRY_HOME</key>
+        <string>${home}/.agentregistry</string>
+    </dict>
+</dict>
+</plist>`;
 
-    // Ensure LaunchAgents directory exists
+    // Step 5: Write plist and load
     const launchAgentsDir = `${home}/Library/LaunchAgents`;
     await mkdir(launchAgentsDir, { recursive: true });
-
-    // Write plist
     await writeFile(LAUNCHD_PLIST, plistContent);
     console.log(`✅ Created ${LAUNCHD_PLIST}`);
 
-    // Ensure log directory exists
-    const logDir = `${home}/.agentregistry/logs`;
-    await mkdir(logDir, { recursive: true });
-
-    // Load with launchctl
-    console.log("📦 Loading service with launchctl...");
+    console.log("🚀 Loading service...");
     const loadProc = spawn({
         cmd: ["launchctl", "load", LAUNCHD_PLIST],
         stdio: ["inherit", "inherit", "inherit"]
     });
     const loadExit = await loadProc.exited;
-
-    if (loadExit === 0) {
-        console.log(`
-✅ AgentRegistry installed as launchd service!
-
-   🔄 Auto-start: Enabled (starts on login)
-   🛡️ KeepAlive: Enabled (restarts on crash)
-   📝 Logs: ${logDir}/launchd-stdout.log
-
-   Commands:
-     launchctl start ${LAUNCHD_LABEL}   # Start now
-     launchctl stop ${LAUNCHD_LABEL}    # Stop
-     agentregistry uninstall                   # Remove service
-`);
-    } else {
+    if (loadExit !== 0) {
         console.log(`❌ Failed to load service (exit code: ${loadExit})`);
-        console.log(`   Try running: launchctl load ${LAUNCHD_PLIST}`);
+        process.exit(1);
+    }
+
+    // Step 6: Health check
+    console.log("⏳ Waiting for server startup...");
+    let healthy = false;
+    for (let i = 0; i < 6; i++) {
+        await new Promise(r => setTimeout(r, 1000));
+        try {
+            const res = await fetch("http://localhost:4873/-/ping");
+            if (res.ok) { healthy = true; break; }
+        } catch { /* not ready yet */ }
+    }
+
+    if (healthy) {
+        console.log(`\n✅ AgentRegistry is running!\n\n   🌐 Admin Panel: http://localhost:4873/-/admin\n   📦 Registry:    http://localhost:4873\n   🔄 Auto-start:  On login\n   🛡️  KeepAlive:   Restarts on crash\n   📝 Logs:        ${logDir}\n   📂 App:         ${appDir}\n\n   Commands:\n     agentregistry status     # Check status\n     agentregistry stop       # Stop server\n     agentregistry uninstall  # Remove service\n`);
+    } else {
+        console.log(`\n⚠️  Service loaded but server not responding yet.\n   Check logs: tail -f ${logDir}/launchd-stderr.log\n`);
     }
 }
 

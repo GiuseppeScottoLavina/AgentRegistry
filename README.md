@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.2-orange?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.1.3-orange?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/tests-650%2B%20passing-brightgreen?style=flat-square" alt="Tests">
   <img src="https://img.shields.io/badge/coverage-95%25%20lines-brightgreen?style=flat-square" alt="Coverage">
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License">
