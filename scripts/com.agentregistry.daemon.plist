@@ -6,27 +6,40 @@
     <key>Label</key>
     <string>com.agentregistry.daemon</string>
     
-    <!-- Command to run -->
+    <!-- Command: bash wrapper to set ulimit before launching bun -->
     <key>ProgramArguments</key>
     <array>
-        <!-- Will be replaced by install.sh with actual path -->
-        <string>__BUN_PATH__</string>
-        <string>run</string>
-        <string>__AGENTREGISTRY_PATH__/src/server.ts</string>
-        <string>--daemon</string>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>ulimit -n 65536; exec "__BUN_PATH__" run "__AGENTREGISTRY_PATH__/src/server.ts" --daemon</string>
     </array>
     
     <!-- Working directory -->
     <key>WorkingDirectory</key>
     <string>__AGENTREGISTRY_PATH__</string>
     
-    <!-- Start at boot -->
+    <!-- File descriptor limits (Bun requires more than macOS default 256) -->
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65536</integer>
+    </dict>
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65536</integer>
+    </dict>
+    
+    <!-- Start at login -->
     <key>RunAtLoad</key>
     <true/>
     
-    <!-- Keep alive - ALWAYS restart (even after graceful shutdown) -->
+    <!-- Keep alive - restart on crash -->
     <key>KeepAlive</key>
-    <true/>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
     
     <!-- Throttle restarts (wait 10 seconds between restarts) -->
     <key>ThrottleInterval</key>
@@ -42,11 +55,11 @@
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:__HOME__/.bun/bin</string>
+        <key>HOME</key>
+        <string>__HOME__</string>
+        <key>AGENTREGISTRY_HOME</key>
+        <string>__HOME__/.agentregistry</string>
     </dict>
-    
-    <!-- Run as current user (not root) -->
-    <key>UserName</key>
-    <string>__USER__</string>
 </dict>
 </plist>
