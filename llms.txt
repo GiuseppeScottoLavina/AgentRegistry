@@ -1,7 +1,7 @@
 # AgentRegistry - Local NPM Registry for Agent-to-Agent Package Sharing
 
 > Minimal, high-performance registry optimized for AI agent workflows.
-> Single dependency (tar). Built with Bun. Alpha (0.1.0).
+> Two dependencies (tar, acorn). Built with Bun. Alpha (0.1.0).
 
 ## Quick Info
 - base_url: http://localhost:4873
@@ -68,8 +68,13 @@ Action: getQuarantine → Response type: quarantine
 Action: approveQuarantine → Payload: { file }
 Action: deleteQuarantine → Payload: { file }
 
+### Deep Scan (Experimental)
+Action: triggerDeepScan → Payload: { package_name, version } → Response type: deepScanResult
+Note: Opt-in AST analysis with 9 detection patterns (eval, spawn, exfiltration, etc.)
+
 ## Security Notes
 - All packages from upstream are security-scanned before caching
+- Opt-in AST deep scanning available for additional analysis (experimental)
 - Blocked packages go to quarantine and require human approval
 - Server binds to 127.0.0.1 only (localhost)
 - Path traversal attacks are blocked

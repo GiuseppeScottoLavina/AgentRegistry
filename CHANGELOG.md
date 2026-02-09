@@ -5,6 +5,45 @@ All notable changes to AgentRegistry will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-02-09
+
+### 🔬 AST Deep Scanner (Experimental)
+
+New opt-in AST-based security scanner that complements regex-based scanning with lightweight Abstract Syntax Tree analysis.
+
+#### Detection Patterns (9)
+- **Critical**: `dynamic_require`, `eval_family`, `encoded_payload_exec`, `process_spawn`, `network_exfiltration`
+- **High**: `computed_member_exec`, `prototype_pollution`
+- **Medium**: `timer_obfuscation`, `iife_with_suspicious_args`
+- Includes **constant propagation** for tracking `const x = "literal"` values
+
+#### Admin Panel Integration
+- "🔬 Scan" button in Scans tab (per-package, opt-in)
+- "🔬 Deep Scan" button in Quarantine tab
+- Expandable findings with severity badges, file:line, code snippets
+- All UI elements marked with 🧪 Experimental badge
+
+#### WebSocket API
+- `triggerDeepScan` action: `{ package_name, version }` → `deepScanResult`
+
+#### CLI
+- `agentregistry scan --deep <file-or-dir>` for local file scanning
+
+#### Database
+- New columns: `deep_scan_count`, `deep_scan_findings` in `scan_results`
+
+#### Documentation
+- Security docs: "Scope & Limitations" section with honest framing
+- README: experimental subsection with pattern table and limitations
+- WebSocket API docs: `triggerDeepScan` action documented
+
+#### Dependencies
+- Added `acorn` (^8.14.0) for AST parsing
+
+#### Testing
+- **179 new tests** in `ast-scanner.test.ts`
+- 100% function coverage, 99.41% line coverage
+
 ## [1.2.3] - 2026-01-30
 
 ### 🐛 Critical Bug Fix: Persistent Storage

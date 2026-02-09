@@ -5,7 +5,7 @@
 </p>
 
 > **Minimal local NPM registry server for agent-to-agent package sharing.**
-> Built with Bun for maximum performance. Single dependency (tar).
+> Built with Bun for maximum performance. Two dependencies (tar, acorn).
 > Licensed under **Apache 2.0** (see [NOTICE](NOTICE) for attribution).
 
 ## Quick Reference
@@ -88,6 +88,7 @@ AgentRegistry/
 │   ├── server.ts          # Main HTTP/WebSocket server (monolithic router)
 │   ├── database.ts        # SQLite operations
 │   ├── security.ts        # Tarball security scanning
+│   ├── ast-scanner.ts     # AST deep scanner (experimental, opt-in)
 │   ├── prompt-injection.ts # Prompt injection detection in packages
 │   ├── config.ts          # Constants, env vars
 │   ├── cli.ts             # Daemon management CLI
@@ -138,6 +139,7 @@ AgentRegistry/
 | `getQuarantine` | List quarantined packages with issues |
 | `rescanQuarantine` | Rescan all quarantined packages |
 | `approveQuarantine` | Manually approve a package |
+| `triggerDeepScan` | Opt-in AST deep scan: `{ package_name, version }` → `deepScanResult` |
 
 ### Security Scanner (`src/security.ts`)
 
@@ -175,9 +177,10 @@ interface ScanResult {
 1. **Localhost-only binding** - Rejects remote connections
 2. **Package name validation** - Prevents path traversal
 3. **Security scanning** - Static analysis for malware patterns
-4. **Quarantine system** - Blocks packages with issues
-5. **Audit logging** - All operations logged to SQLite
-6. **Rate limiting** - Per-IP request limits
+4. **AST deep scanning** - Opt-in AST analysis (experimental, 9 patterns + constant propagation)
+5. **Quarantine system** - Blocks packages with issues
+6. **Audit logging** - All operations logged to SQLite
+7. **Rate limiting** - Per-IP request limits
 
 ---
 
@@ -193,7 +196,7 @@ interface ScanResult {
 
 ```bash
 bun test
-# 656 tests covering all endpoints, security, admin panel, and agent APIs
+# 650+ tests covering all endpoints, security, admin panel, and agent APIs
 ```
 
 ---

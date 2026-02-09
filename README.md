@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.1.0-orange?style=flat-square" alt="Version">
-  <img src="https://img.shields.io/badge/tests-751%2F751%20(100%25)-brightgreen?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/tests-650%2B%20passing-brightgreen?style=flat-square" alt="Tests">
   <img src="https://img.shields.io/badge/coverage-95%25%20lines-brightgreen?style=flat-square" alt="Coverage">
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/bun-%3E%3D1.0-black?style=flat-square&logo=bun" alt="Bun">
@@ -50,7 +50,7 @@ AgentRegistry was born from a simple question: *what if your local registry coul
 
 | Pain Point | Traditional Registries | AgentRegistry |
 |------------|------------------------|---------| 
-| **Dependencies** | 60+ packages to install | **1 dependency (`tar`)** |
+| **Dependencies** | 60+ packages to install | **2 dependencies (`tar`, `acorn`)** |
 | **Setup Time** | Minutes of configuration | **One command: `bun run start`** |
 | **AI Integration** | None | **Native MCP, llms.txt, OpenAPI** |
 | **Security** | Afterthought (plugins) | **Quarantine-first architecture** |
@@ -251,7 +251,7 @@ Packages are stored locally in:
 # First, start the server (required for tests)
 bun start
 
-# In another terminal, run all 751 tests
+# In another terminal, run tests
 bun test
 ```
 
@@ -285,7 +285,8 @@ bun test
 | Allowlist | 8 | ✅ |
 | CLI | 6 | ✅ |
 | Unit Tests | 3 | ✅ |
-| **Total** | **751** | **✅** |
+| AST Scanner | 179 | ✅ |
+| **Total** | **650+** | **✅** |
 
 ## Automatic Maintenance
 
