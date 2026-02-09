@@ -33,12 +33,13 @@
  */
 
 import { mkdir, readdir, unlink, exists, rename } from "node:fs/promises";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { createHash, timingSafeEqual } from "node:crypto";
 import cluster from "node:cluster";
 import { cpus } from "node:os";
 import { scanTarball, type ScanResult } from "./security";
+import { deepScanFiles } from "./ast-scanner";
 import {
     getDatabase,
     loadPackageFromDB,
@@ -49,6 +50,7 @@ import {
     searchPackages,
     countPackages,
     saveScanResult,
+    updateDeepScanResult,
     getScanStats,
     logRequest,
     logAudit,
@@ -902,7 +904,7 @@ async function handleAdminWSMessage(ws: any, msg: { action: string; payload?: an
             case "getScanHistory":
                 const db = getDatabase();
                 const scans = db.prepare(`
-                    SELECT package_name, version, safe, issues_count, issues, scan_time_ms, scanned_at 
+                    SELECT package_name, version, safe, issues_count, issues, scan_time_ms, scanned_at, deep_scan_count, deep_scan_findings 
                     FROM scan_results ORDER BY scanned_at DESC LIMIT 100
                 `).all();
                 respond("scanHistory", { scans });
@@ -996,6 +998,82 @@ async function handleAdminWSMessage(ws: any, msg: { action: string; payload?: an
                 broadcastToAdmin("quarantine_rescanned", { approved, total: qToScan.length });
                 respond("rescanComplete", { results: scanResults, approved });
                 break;
+
+            case "triggerDeepScan": {
+                const pkgName = msg.payload?.package_name;
+                const pkgVersion = msg.payload?.version;
+                if (!pkgName || !pkgVersion) {
+                    respond("deepScanResult", { error: "Missing package_name or version" });
+                    break;
+                }
+
+                // Find tarball in tarballs/ or quarantine/
+                const safeName = pkgName.replace(/\//g, "-").replace(/@/g, "");
+                const tarballName = `${safeName}-${pkgVersion}.tgz`;
+                let tarballPath = join(TARBALLS_DIR, tarballName);
+                if (!existsSync(tarballPath)) {
+                    tarballPath = join(QUARANTINE_DIR, tarballName);
+                }
+                if (!existsSync(tarballPath)) {
+                    respond("deepScanResult", { error: `Tarball not found: ${tarballName}` });
+                    break;
+                }
+
+                // Extract to temp dir
+                const { mkdtemp, readdir: readdirAsync, rm: rmAsync } = await import("node:fs/promises");
+                const deepTempDir = await mkdtemp(join("/tmp", "deep-scan-"));
+                try {
+                    const tar = await import("tar");
+                    await tar.x({ file: tarballPath, cwd: deepTempDir });
+
+                    // Collect JS/TS files into Map
+                    const files = new Map<string, string>();
+                    async function collectFiles(dir: string, prefix: string = "") {
+                        const entries = await readdirAsync(dir, { withFileTypes: true });
+                        for (const entry of entries) {
+                            const fullPath = join(dir, entry.name);
+                            const relPath = prefix ? `${prefix}/${entry.name}` : entry.name;
+                            if (entry.isDirectory() && entry.name !== "node_modules") {
+                                await collectFiles(fullPath, relPath);
+                            } else if (entry.isFile()) {
+                                const ext = entry.name.toLowerCase();
+                                if ([".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"].some(e => ext.endsWith(e))) {
+                                    const content = await Bun.file(fullPath).text();
+                                    files.set(relPath, content);
+                                }
+                            }
+                        }
+                    }
+                    await collectFiles(deepTempDir);
+
+                    // Run deep scan
+                    const deepResult = deepScanFiles(files);
+
+                    // Persist to DB
+                    updateDeepScanResult(pkgName, pkgVersion, deepResult.findings, deepResult.findings.length);
+
+                    logAudit("scan_completed", `${pkgName}@${pkgVersion}`, {
+                        type: "deep_scan",
+                        findings: deepResult.findings.length,
+                        filesAnalyzed: deepResult.filesAnalyzed,
+                        scanTimeMs: deepResult.scanTimeMs
+                    });
+
+                    respond("deepScanResult", {
+                        package_name: pkgName,
+                        version: pkgVersion,
+                        findings: deepResult.findings,
+                        filesAnalyzed: deepResult.filesAnalyzed,
+                        parseErrors: deepResult.parseErrors,
+                        scanTimeMs: deepResult.scanTimeMs
+                    });
+                } catch (err: any) {
+                    respond("deepScanResult", { error: `Deep scan failed: ${err.message}` });
+                } finally {
+                    await rmAsync(deepTempDir, { recursive: true, force: true }).catch(() => { });
+                }
+                break;
+            }
 
             case "approveQuarantine":
                 if (msg.payload?.file) {

@@ -136,6 +136,14 @@ function initAllSchemas(): void {
         db.exec(`ALTER TABLE scan_results ADD COLUMN pi_findings TEXT`);
     } catch { /* column already exists */ }
 
+    // Migration: add AST deep scan columns (experimental)
+    try {
+        db.exec(`ALTER TABLE scan_results ADD COLUMN deep_scan_count INTEGER DEFAULT 0`);
+    } catch { /* column already exists */ }
+    try {
+        db.exec(`ALTER TABLE scan_results ADD COLUMN deep_scan_findings TEXT`);
+    } catch { /* column already exists */ }
+
     // ========================================================================
     // REQUEST_LOGS TABLE - HTTP request history
     // ========================================================================
@@ -383,13 +391,15 @@ export interface ScanResultRecord {
     pi_score?: number;
     pi_count?: number;
     pi_findings?: any[];
+    deep_scan_count?: number;
+    deep_scan_findings?: any[];
 }
 
 export function saveScanResult(result: ScanResultRecord): void {
     const db = getDatabase();
     const stmt = db.prepare(`
-        INSERT INTO scan_results (package_name, version, tarball_hash, safe, issues_count, issues, files_scanned, scan_time_ms, pi_score, pi_count, pi_findings)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO scan_results (package_name, version, tarball_hash, safe, issues_count, issues, files_scanned, scan_time_ms, pi_score, pi_count, pi_findings, deep_scan_count, deep_scan_findings)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(package_name, version) DO UPDATE SET
             tarball_hash = excluded.tarball_hash,
             safe = excluded.safe,
@@ -400,6 +410,8 @@ export function saveScanResult(result: ScanResultRecord): void {
             pi_score = excluded.pi_score,
             pi_count = excluded.pi_count,
             pi_findings = excluded.pi_findings,
+            deep_scan_count = excluded.deep_scan_count,
+            deep_scan_findings = excluded.deep_scan_findings,
             scanned_at = datetime('now')
     `);
     stmt.run(
@@ -413,8 +425,23 @@ export function saveScanResult(result: ScanResultRecord): void {
         result.scan_time_ms,
         result.pi_score ?? 0,
         result.pi_count ?? 0,
-        result.pi_findings ? JSON.stringify(result.pi_findings) : null
+        result.pi_findings ? JSON.stringify(result.pi_findings) : null,
+        result.deep_scan_count ?? 0,
+        result.deep_scan_findings ? JSON.stringify(result.deep_scan_findings) : null
     );
+}
+
+/**
+ * Update only the deep scan columns for an existing scan result.
+ * Used by the opt-in "triggerDeepScan" admin action.
+ */
+export function updateDeepScanResult(packageName: string, version: string, findings: any[], count: number): void {
+    const db = getDatabase();
+    db.prepare(`
+        UPDATE scan_results 
+        SET deep_scan_count = ?, deep_scan_findings = ?
+        WHERE package_name = ? AND version = ?
+    `).run(count, JSON.stringify(findings), packageName, version);
 }
 
 export function getScanResultByHash(hash: string): ScanResultRecord | null {

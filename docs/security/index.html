@@ -63,6 +63,7 @@
                 <li><a href="#protection">Protection Layers</a></li>
                 <li><a href="#quarantine">Quarantine Flow</a></li>
                 <li><a href="#scanner">Security Scanner</a></li>
+                <li><a href="#ast-deep">AST Deep Scan 🧪</a></li>
                 <li><a href="#allowlist">Package Allowlist</a></li>
                 <li><a href="#validation">Input Validation</a></li>
                 <li><a href="#limitations">Limitations</a></li>
@@ -386,6 +387,131 @@
                 </ul>
             </section>
 
+            <section id="ast-deep">
+                <h2>🔬 AST Deep Scanner <span
+                        style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);font-size:0.7rem;padding:0.2rem 0.5rem;border-radius:6px;font-weight:600;vertical-align:middle;margin-left:0.5rem">🧪
+                        Experimental</span></h2>
+
+                <div class="warning-box">
+                    <h4>⚠️ Scope &amp; Limitations</h4>
+                    <p>The AST deep scanner is <strong>one possible approach</strong> to complementing regex-based
+                        scanning with lightweight AST analysis. It is well-tested (179 tests, constant propagation,
+                        9 detection patterns) and effective within its scope, but it is <strong>not a replacement
+                            for dedicated static analysis tools</strong> like Semgrep or CodeQL.
+                        See <strong>known limitations</strong> below for details.</p>
+                    <p>Use it as an <strong>additional signal</strong>, not as a sole security gate.</p>
+                </div>
+
+                <h3>What It Does</h3>
+                <p>The deep scanner parses JavaScript/TypeScript files into Abstract Syntax Trees (AST) using
+                    <code>acorn</code> and walks the tree looking for suspicious patterns that regex cannot
+                    reliably detect — particularly <strong>obfuscated execution patterns</strong>.
+                </p>
+
+                <h3>Detected Patterns (9)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pattern</th>
+                            <th>Severity</th>
+                            <th>Detects</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>dynamic_require</code></td>
+                            <td><span class="badge badge-danger">Critical</span></td>
+                            <td><code>require(variable)</code> — runtime-computed module loading</td>
+                        </tr>
+                        <tr>
+                            <td><code>eval_family</code></td>
+                            <td><span class="badge badge-danger">Critical</span></td>
+                            <td><code>eval()</code>, <code>new Function()</code> — dynamic code execution</td>
+                        </tr>
+                        <tr>
+                            <td><code>encoded_payload_exec</code></td>
+                            <td><span class="badge badge-danger">Critical</span></td>
+                            <td><code>eval(atob(...))</code>, <code>Function(Buffer.from(...))</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>process_spawn</code></td>
+                            <td><span class="badge badge-danger">Critical</span></td>
+                            <td><code>child_process.exec()</code>, <code>spawn()</code> with shell commands</td>
+                        </tr>
+                        <tr>
+                            <td><code>network_exfiltration</code></td>
+                            <td><span class="badge badge-danger">Critical</span></td>
+                            <td>Outbound HTTP with sensitive data (<code>env</code>, <code>ssh</code>,
+                                <code>token</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>computed_member_exec</code></td>
+                            <td><span class="badge badge-warning">High</span></td>
+                            <td><code>global["ev"+"al"]()</code> — bracket-notation invocation</td>
+                        </tr>
+                        <tr>
+                            <td><code>prototype_pollution</code></td>
+                            <td><span class="badge badge-warning">High</span></td>
+                            <td>Writes to <code>__proto__</code>, <code>constructor.prototype</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>timer_obfuscation</code></td>
+                            <td><span class="badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">Medium</span>
+                            </td>
+                            <td><code>setTimeout("code", 0)</code> — string-based deferred execution</td>
+                        </tr>
+                        <tr>
+                            <td><code>iife_with_suspicious_args</code></td>
+                            <td><span class="badge" style="background:rgba(245,158,11,0.2);color:#f59e0b">Medium</span>
+                            </td>
+                            <td>Immediately-invoked functions with encoded/suspicious arguments</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Constant Propagation</h3>
+                <p>The scanner includes <strong>lightweight constant propagation</strong>: when it encounters
+                    <code>const name = "literal"</code>, it tracks the value so that later usage of <code>name</code>
+                    can be resolved. This catches patterns like:
+                </p>
+                <div class="code-block"><code>const fn = "eval";
+const payload = "alert(1)";
+global[fn](payload); // Detected as computed_member_exec</code></div>
+
+                <h3>Known Limitations</h3>
+                <div class="highlight-box">
+                    <h4>🔍 What It Does NOT Do</h4>
+                    <ul>
+                        <li>❌ <strong>No data-flow analysis</strong> — cannot track values across function boundaries
+                        </li>
+                        <li>❌ <strong>No interprocedural analysis</strong> — limited to single-file, single-scope</li>
+                        <li>❌ <strong>No control-flow analysis</strong> — no dead code detection or branch analysis</li>
+                        <li>❌ <strong>No dynamic analysis</strong> — no sandbox execution or runtime behavior</li>
+                        <li>❌ <strong>Expression-based constants not tracked</strong> — only
+                            <code>const x = "literal"</code>,
+                            not <code>const x = a + b</code>
+                        </li>
+                        <li>❌ <strong>Cannot detect multi-stage payloads</strong> spread across files</li>
+                        <li>❌ <strong>Minified/bundled code</strong> may produce false positives</li>
+                    </ul>
+                </div>
+
+                <h3>How to Use</h3>
+                <p>Deep scan is <strong>opt-in only</strong> — it never runs automatically during publish or quarantine.
+                </p>
+                <ul>
+                    <li><strong>CLI:</strong> <code>agentregistry scan --deep &lt;file-or-dir&gt;</code></li>
+                    <li><strong>Admin Panel → Scans:</strong> Click "🔬 Scan" on any scanned package</li>
+                    <li><strong>Admin Panel → Quarantine:</strong> Click "🔬 Deep Scan" on quarantined packages</li>
+                </ul>
+
+                <div class="tip-box">
+                    <h4>🧪 Test Coverage</h4>
+                    <p><strong>179 test cases</strong> · 100% function coverage · 99.41% line coverage</p>
+                </div>
+            </section>
+
             <section id="allowlist">
                 <h2>Package Allowlist</h2>
                 <p>The Package Allowlist allows you to skip security scanning for trusted packages. This improves
@@ -442,7 +568,8 @@
 
                 <div class="tip-box">
                     <h4>💡 Default Entries</h4>
-                    <p>AgentRegistry ships with ~60 default trusted packages. Default entries cannot be deleted, only
+                    <p>AgentRegistry ships with ~60 default trusted packages. Default entries cannot be deleted,
+                        only
                         disabled.</p>
                 </div>
             </section>
@@ -499,7 +626,8 @@
                     <li>Static analysis cannot detect all malicious patterns</li>
                     <li>Advanced obfuscation (AST-level transforms, JIT-compiled payloads) may bypass detection</li>
                     <li>No sandbox execution testing</li>
-                    <li>Common obfuscation (leetspeak, homoglyphs, ROT13, reversed text) <strong>is</strong> detected by
+                    <li>Common obfuscation (leetspeak, homoglyphs, ROT13, reversed text) <strong>is</strong>
+                        detected by
                         the 10-pass scanner</li>
                 </ul>
 

@@ -41,9 +41,13 @@ import { tailLogs } from "./logger";
 import { PORT, PID_FILE, LOG_FILE } from "./config";
 import { formatUptime } from "./utils";
 import { generateTSLib } from "./templates/ts-lib";
-import { stat, mkdir, rm, writeFile, readFile, copyFile, unlink } from "node:fs/promises";
+import { stat, mkdir, rm, writeFile, readFile, copyFile, unlink, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir, tmpdir, platform } from "node:os";
+import { scanTarball } from "./security";
+import { deepScanFiles, type DeepScanFinding } from "./ast-scanner";
+import { TARBALLS_DIR, STORAGE_DIR } from "./config";
+import * as tar from "tar";
 
 // ============================================================================
 // Helpers
@@ -71,6 +75,7 @@ Commands:
   restart   Stop and start daemon
   install   Install as macOS launchd service (auto-start on login)
   uninstall Remove launchd service
+  scan      Security scan a package (agentregistry scan [--deep] <name@version>)
   help      Show this help message
 
 Options:
@@ -84,6 +89,8 @@ Examples:
   agentregistry release minor
   agentregistry status
   agentregistry logs
+  agentregistry scan lodash@4.17.21
+  agentregistry scan --deep my-package@1.0.0
 `);
 }
 
@@ -613,6 +620,165 @@ async function cmdUninstall(): Promise<void> {
 }
 
 // ============================================================================
+// Scan Command
+// ============================================================================
+
+async function cmdScan(args: string[]): Promise<void> {
+    // Parse flags
+    const deep = args.includes("--deep");
+    const packageRef = args.find(a => !a.startsWith("--"));
+
+    if (!packageRef || !packageRef.includes("@")) {
+        console.log(`❌ Usage: agentregistry scan [--deep] <name@version>`);
+        console.log(`   Example: agentregistry scan lodash@4.17.21`);
+        console.log(`   Example: agentregistry scan --deep my-package@1.0.0`);
+        process.exit(1);
+    }
+
+    // Parse name@version (handle scoped packages like @scope/name@1.0.0)
+    const lastAt = packageRef.lastIndexOf("@");
+    if (lastAt <= 0) {
+        console.log(`❌ Invalid package reference: ${packageRef}`);
+        console.log(`   Expected format: name@version or @scope/name@version`);
+        process.exit(1);
+    }
+
+    const name = packageRef.slice(0, lastAt);
+    const version = packageRef.slice(lastAt + 1);
+
+    // Locate tarball
+    const safeName = name.replace("/", "-").replace("@", "");
+    const tarballPath = join(TARBALLS_DIR, `${safeName}-${version}.tgz`);
+
+    try {
+        await stat(tarballPath);
+    } catch {
+        console.log(`❌ Tarball not found: ${tarballPath}`);
+        console.log(`   Make sure the package is published to AgentRegistry.`);
+        process.exit(1);
+    }
+
+    console.log(`\n🔍 Scanning ${name}@${version}...`);
+    console.log(`   Tarball: ${tarballPath}`);
+    if (deep) console.log(`   Mode: Deep AST analysis (acorn)`);
+    else console.log(`   Mode: Standard (regex-based)`);
+    console.log();
+
+    // Standard scan (always runs)
+    const scanResult = await scanTarball(tarballPath);
+
+    // Print standard scan results
+    const severityColors: Record<string, string> = {
+        critical: "\x1b[31m", // red
+        high: "\x1b[33m",     // yellow
+        medium: "\x1b[36m",   // cyan
+        low: "\x1b[90m"       // gray
+    };
+    const reset = "\x1b[0m";
+    const bold = "\x1b[1m";
+
+    console.log(`${bold}━━━ Standard Scan Results ━━━${reset}`);
+    console.log(`   Files scanned: ${scanResult.filesScanned}`);
+    console.log(`   Time: ${scanResult.scanTimeMs}ms`);
+    console.log(`   Status: ${scanResult.safe ? "\x1b[32m✅ SAFE" : "\x1b[31m⚠️  ISSUES FOUND"}${reset}`);
+
+    if (scanResult.issues.length > 0) {
+        console.log(`\n   ${bold}Security Issues (${scanResult.issues.length}):${reset}`);
+        for (const issue of scanResult.issues) {
+            const color = severityColors[issue.severity] || reset;
+            console.log(`   ${color}[${issue.severity.toUpperCase()}]${reset} ${issue.description}`);
+            if (issue.file) console.log(`            File: ${issue.file}${issue.line ? `:${issue.line}` : ""}`);
+        }
+    }
+
+    if (scanResult.promptInjections && scanResult.promptInjections.length > 0) {
+        console.log(`\n   ${bold}Prompt Injection Risks (${scanResult.promptInjections.length}):${reset}`);
+        console.log(`   Risk Score: ${scanResult.piRiskScore ?? 0}/100`);
+        for (const pi of scanResult.promptInjections) {
+            const color = severityColors[pi.severity] || reset;
+            console.log(`   ${color}[${pi.severity.toUpperCase()}]${reset} ${pi.pattern} — ${pi.matched}`);
+            if (pi.file) console.log(`            File: ${pi.file}:${pi.line}`);
+        }
+    }
+
+    // Deep scan (optional)
+    if (deep) {
+        console.log(`\n${bold}━━━ Deep AST Scan ━━━${reset}`);
+
+        const tempDir = `/tmp/agentregistry-deepscan-${Date.now()}`;
+        await mkdir(tempDir, { recursive: true });
+
+        try {
+            // Extract tarball
+            await tar.x({ file: tarballPath, cwd: tempDir });
+
+            // Collect JS/TS files
+            const files = new Map<string, string>();
+            const jsExtensions = [".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"];
+
+            async function collectFiles(dir: string, prefix: string = ""): Promise<void> {
+                const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+                for (const entry of entries) {
+                    const fullPath = join(dir, entry.name);
+                    const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
+                    if (entry.isDirectory() && entry.name !== "node_modules") {
+                        await collectFiles(fullPath, relativePath);
+                    } else if (entry.isFile()) {
+                        const ext = entry.name.toLowerCase();
+                        if (jsExtensions.some(e => ext.endsWith(e))) {
+                            try {
+                                const info = await stat(fullPath);
+                                if (info.size <= 100 * 1024) { // 100KB limit
+                                    const content = await readFile(fullPath, "utf-8");
+                                    files.set(relativePath, content);
+                                }
+                            } catch { /* skip */ }
+                        }
+                    }
+                }
+            }
+
+            await collectFiles(tempDir);
+
+            console.log(`   Files collected: ${files.size}`);
+
+            // Run deep scan
+            const deepResult = deepScanFiles(files);
+
+            console.log(`   Files analyzed: ${deepResult.filesAnalyzed}`);
+            console.log(`   Parse errors: ${deepResult.parseErrors}`);
+            console.log(`   Time: ${deepResult.scanTimeMs}ms`);
+
+            if (deepResult.findings.length === 0) {
+                console.log(`   Status: \x1b[32m✅ No AST-level threats detected${reset}`);
+            } else {
+                console.log(`   Status: \x1b[31m⚠️  ${deepResult.findings.length} findings${reset}`);
+                console.log();
+
+                for (const finding of deepResult.findings) {
+                    const color = severityColors[finding.severity] || reset;
+                    console.log(`   ${color}[${finding.severity.toUpperCase()}]${reset} ${bold}${finding.pattern}${reset}`);
+                    console.log(`            ${finding.description}`);
+                    console.log(`            File: ${finding.file}:${finding.line}:${finding.column}`);
+                    console.log(`            Code: ${finding.code}`);
+                    console.log();
+                }
+            }
+        } finally {
+            await rm(tempDir, { recursive: true, force: true });
+        }
+    }
+
+    // Summary
+    console.log(`\n${bold}━━━ Summary ━━━${reset}`);
+    const safe = scanResult.safe;
+    console.log(`   Overall: ${safe ? "\x1b[32m✅ SAFE" : "\x1b[31m❌ UNSAFE"}${reset}`);
+    if (!safe) {
+        process.exit(2); // Non-zero exit for CI integration
+    }
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -665,6 +831,9 @@ async function main(): Promise<void> {
             break;
         case "uninstall":
             await cmdUninstall();
+            break;
+        case "scan":
+            await cmdScan(args.slice(1));
             break;
         case "help":
         case "--help":

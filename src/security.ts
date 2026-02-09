@@ -28,6 +28,7 @@ import * as logger from "./logger";
 import { safeJsonParse } from "./utils";
 import { scanForPromptInjection, scanPackageJsonMetadata, scanInstallScripts, calculateRiskScore, type PromptInjectionMatch } from "./prompt-injection";
 import { isPackageAllowlisted } from "./package-allowlist";
+import type { DeepScanFinding } from "./ast-scanner";
 
 // Use /tmp directly on macOS to avoid App Sandbox restrictions with tmpdir()
 const SCAN_TMP_BASE = "/tmp";
@@ -152,6 +153,10 @@ export interface ScanResult {
     promptInjections?: PromptInjectionMatch[];
     /** Risk score from 0-100 based on prompt injection findings */
     piRiskScore?: number;
+    /** Deep AST scan findings (only present when --deep scan is used) */
+    deepScanFindings?: DeepScanFinding[];
+    /** Deep AST scan time in ms */
+    deepScanTimeMs?: number;
 }
 
 function scanCode(content: string, filename: string): ScanResult["issues"] {

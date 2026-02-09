@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="/assets/favicon.webp">
-    <meta name="description" content="AgentRegistry Admin Panel - Manage local packages, quarantine, and security settings.">
+    <meta name="description"
+        content="AgentRegistry Admin Panel - Manage local packages, quarantine, and security settings.">
     <title>AgentRegistry Admin</title>
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
@@ -560,6 +561,54 @@
             background: rgba(139, 92, 246, 0.1);
             padding: 0.15rem 0.4rem;
             border-radius: 4px;
+        }
+
+        .badge-experimental {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            vertical-align: middle;
+        }
+
+        .deep-scan-findings {
+            font-size: 0.8rem;
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .deep-scan-findings li {
+            margin-bottom: 0.5rem;
+        }
+
+        .deep-scan-findings code {
+            font-size: 0.75rem;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+
+        .btn-deep-scan {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-deep-scan:hover {
+            background: rgba(245, 158, 11, 0.25);
+            border-color: #f59e0b;
+        }
+
+        .btn-deep-scan:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         th.sortable {
@@ -1855,6 +1904,18 @@ ${data.results.map(pkg => `
                     case 'scanHistory':
                         renderScans(msg.data.scans || []);
                         break;
+                    case 'deepScanResult':
+                        if (msg.data.error) {
+                            showToast(msg.data.error, 'error');
+                            // Re-enable buttons
+                            document.querySelectorAll('.btn-deep-scan').forEach(b => b.disabled = false);
+                        } else {
+                            showToast(`🔬 Deep scan: ${msg.data.findings?.length || 0} findings in ${msg.data.scanTimeMs}ms`, msg.data.findings?.length > 0 ? 'error' : 'success');
+                            // Refresh scans tab and quarantine
+                            send('getScanHistory');
+                            send('getQuarantine');
+                        }
+                        break;
                     case 'requestLogs':
                         renderRequests(msg.data.requests || []);
                         break;
@@ -2076,6 +2137,7 @@ ${issuesCount > 0 ? `<span class="badge badge-blocked" style="margin-left:0.5rem
 <td>
 <button class="btn btn-primary" onclick="approveQuarantine('${safeFile}')" title="Move to tarballs">Approve</button>
 <button class="btn btn-danger" onclick="deleteQuarantine('${safeFile}')" title="Delete permanently">Delete</button>
+<button class="btn btn-deep-scan" onclick="triggerDeepScanFromFile('${safeFile}')" title="AST Deep Scan (Experimental)">🔬 Deep Scan <span class="badge-experimental">🧪</span></button>
 </td>
 </tr>
 ${hasPiFindings ? `<tr id="q-pi-${i}" style="display:none"><td colspan="4" style="background:var(--bg-tertiary);padding:1rem">
@@ -2152,20 +2214,39 @@ ${sorted.map(l => `<tr><td>${escapeHtml(l.action)}</td><td>${escapeHtml(l.target
 <th class="${getSortClass('scans', 'safe')}" onclick="toggleSort('scans', 'safe', 'string', renderScans)">Status</th>
 <th class="${getSortClass('scans', 'issues_count')}" onclick="toggleSort('scans', 'issues_count', 'number', renderScans)">Issues</th>
 <th class="${getSortClass('scans', 'scan_time_ms')}" onclick="toggleSort('scans', 'scan_time_ms', 'number', renderScans)">Time</th>
+<th>AST <span class="badge-experimental">🧪</span></th>
 <th>Details</th>
 </tr></thead><tbody>
 ${sorted.map((s, i) => {
                     const issues = s.issues ? (typeof s.issues === 'string' ? JSON.parse(s.issues) : s.issues) : [];
                     const hasIssues = issues.length > 0;
+                    const deepCount = s.deep_scan_count || 0;
+                    const deepFindings = s.deep_scan_findings ? (typeof s.deep_scan_findings === 'string' ? JSON.parse(s.deep_scan_findings || '[]') : s.deep_scan_findings) : [];
+                    const hasDeep = deepFindings.length > 0;
                     return `<tr>
 <td>${escapeHtml(s.package_name)}</td>
 <td>${escapeHtml(s.version)}</td>
 <td>${s.safe ? badge('safe', 'Safe') : badge('blocked', 'Blocked')}</td>
 <td>${s.issues_count}</td>
 <td>${s.scan_time_ms}ms</td>
+<td>
+${deepCount > 0 ? `<span class="badge badge-warning">${deepCount}</span> <button class="btn" style="padding:0.2rem 0.5rem;font-size:0.7rem" onclick="toggleDeepScanFindings(${i})">View</button>` : `<button class="btn btn-deep-scan" id="deep-scan-btn-${i}" onclick="triggerDeepScan('${escapeHtml(s.package_name)}', '${escapeHtml(s.version)}', ${i})">🔬 Scan</button>`}
+</td>
 <td>${hasIssues ? `<button class="btn" onclick="toggleIssueDetails(${i})">View</button>` : '-'}</td>
 </tr>
-${hasIssues ? `<tr id="issue-row-${i}" style="display:none"><td colspan="6" style="background:var(--bg-primary);padding:1rem">
+${hasDeep ? `<tr id="deep-row-${i}" style="display:none"><td colspan="7" style="background:rgba(245,158,11,0.05);padding:1rem;border-left:3px solid rgba(245,158,11,0.4)">
+<strong style="font-size:0.85rem">🔬 AST Deep Scan Findings (${deepCount}) <span class="badge-experimental">🧪 Experimental</span></strong>
+<ul class="deep-scan-findings" style="margin-top:0.5rem">
+${deepFindings.map(f => `<li>
+<span class="badge badge-${f.severity === 'critical' ? 'blocked' : f.severity === 'high' ? 'warning' : 'info'}" style="font-size:0.65rem">${escapeHtml(f.severity)}</span>
+<strong>${escapeHtml(f.pattern)}</strong>
+<small style="color:var(--text-secondary)"> — ${escapeHtml(f.description)}</small><br>
+<small style="color:var(--text-secondary)">📄 ${escapeHtml(f.file)}${f.line ? ':' + f.line : ''}</small>
+${f.code ? `<div style="margin-top:0.25rem"><code style="display:block;max-width:600px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.code)}</code></div>` : ''}
+</li>`).join('')}
+</ul>
+</td></tr>` : ''}
+${hasIssues ? `<tr id="issue-row-${i}" style="display:none"><td colspan="7" style="background:var(--bg-primary);padding:1rem">
 <strong>Security Issues:</strong>
 <ul style="margin:0.5rem 0 0 1rem;font-size:0.875rem">
 ${issues.map(issue => `<li><span class="badge badge-${issue.severity === 'critical' ? 'blocked' : 'info'}">${escapeHtml(issue.severity)}</span> ${escapeHtml(issue.description)} ${issue.file ? `<small>(${escapeHtml(issue.file)})</small>` : ''}</li>`).join('')}
@@ -2178,6 +2259,33 @@ ${issues.map(issue => `<li><span class="badge badge-${issue.severity === 'critic
                 if (row) {
                     row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
                 }
+            }
+            function toggleDeepScanFindings(index) {
+                const row = document.getElementById('deep-row-' + index);
+                if (row) {
+                    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+                }
+            }
+            function triggerDeepScan(packageName, version, index) {
+                const btn = document.getElementById('deep-scan-btn-' + index);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '⏳ Scanning...';
+                }
+                send('triggerDeepScan', { package_name: packageName, version: version });
+            }
+            function triggerDeepScanFromFile(filename) {
+                // Parse package name and version from filename like "lodash-4.17.21.tgz"
+                // NOTE: For scoped packages (@scope/name → scope-name-x.y.z.tgz), the 
+                // reconstructed name won't match the DB record. Tarball is still found
+                // and results are returned to UI, but DB persistence may silently fail.
+                const match = filename.match(/^(.+)-([\d]+\.[\d]+\.[\d]+.*)\.(tgz)$/);
+                if (!match) {
+                    showToast('Cannot parse package info from filename', 'error');
+                    return;
+                }
+                send('triggerDeepScan', { package_name: match[1], version: match[2] });
+                showToast('🔬 Deep scan started...', 'success');
             }
             let requestsData = [];
             function renderRequests(reqs) {

@@ -383,6 +383,30 @@ The prompt injection scanner uses a **research-backed 10-pass analysis pipeline*
 
 **154 prompt injection tests** (30 SOTA adversarial) · 100% line coverage · 97% function coverage
 
+### 🧪 AST Deep Scan (Experimental)
+
+> ⚠️ The AST deep scanner is **one approach** to complementing regex-based scanning with lightweight AST analysis. Well-tested (179 tests, 99% coverage) and effective within its scope — but not a replacement for dedicated tools like Semgrep or CodeQL. See [known limitations →](https://giuseppescottolavina.github.io/AgentRegistry/security/#ast-deep)
+
+**Opt-in only** — never runs automatically. Trigger via CLI (`agentregistry scan --deep`) or Admin Panel UI ("🔬 Scan" button).
+
+| Pattern | Severity | Detects |
+|---------|----------|---------|
+| `eval_family` | Critical | `eval()`, `new Function()` |
+| `encoded_payload_exec` | Critical | `eval(atob(...))`, encoded execution |
+| `process_spawn` | Critical | `child_process.exec()`, shell commands |
+| `network_exfiltration` | Critical | HTTP requests with sensitive data |
+| `dynamic_require` | Critical | `require(variable)` |
+| `computed_member_exec` | High | `global["ev"+"al"]()` |
+| `prototype_pollution` | High | `__proto__` writes |
+| `timer_obfuscation` | Medium | `setTimeout("code", 0)` |
+| `iife_with_suspicious_args` | Medium | Suspicious IIFE arguments |
+
+Includes lightweight **constant propagation** (tracks `const x = "literal"` values).
+
+**Known limitations**: No data-flow, interprocedural, or control-flow analysis. Cannot track values across function boundaries or detect multi-file payloads.
+
+**179 tests** · 100% function coverage · 99.41% line coverage — [Full docs →](https://giuseppescottolavina.github.io/AgentRegistry/security/#ast-deep)
+
 ### Research References
 
 1. Zou et al. — *Universal and Transferable Adversarial Attacks on Aligned Language Models* (GCG, 2023)
