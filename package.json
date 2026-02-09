@@ -49,6 +49,7 @@
   },
   "type": "module",
   "dependencies": {
-    "tar": "^7.5.6"
+    "tar": "^7.5.6",
+    "acorn": "^8.14.0"
   }
 }
